@@ -7,9 +7,9 @@ exports.seedAdmin = async () => {
     const count = await Admin.countDocuments();
     if (count === 0) {
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('admin123', salt);
+        const hashedPassword = await bcrypt.hash('9390198225@csi', salt);
         await Admin.create({ username: 'admin', password: hashedPassword });
-        console.log('Admin seeded: admin / admin123');
+        console.log('Admin seeded: admin / 9390198225@csi');
     }
 };
 
