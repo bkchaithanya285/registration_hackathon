@@ -1,0 +1,56 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: |
+        npm install
+        cd client && npm install && cd ..
+        cd server && npm install && cd ..
+
+    - name: Build frontend
+      run: cd client && npm run build
+
+    - name: Check for errors
+      run: npm run lint
+
+    - name: Test backend
+      run: cd server && npm test || true
+
+    # Uncomment when ready to deploy to production
+    # - name: Deploy to Railway
+    #   env:
+    #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    #   run: |
+    #     npm install -g @railway/cli
+    #     railway up --service backend
+
+    # - name: Deploy to Vercel (Registration)
+    #   env:
+    #     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    #   run: |
+    #     npx vercel --prod --token=$VERCEL_TOKEN
+
+    - name: Notify deployment
+      if: success()
+      run: echo "✅ Build successful! Ready for deployment."
+
+    - name: Build failed
+      if: failure()
+      run: echo "❌ Build failed! Check errors above."

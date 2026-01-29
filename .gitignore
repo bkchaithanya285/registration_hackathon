@@ -1,0 +1,79 @@
+# Environment Variables (NEVER PUSH CREDENTIALS)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build Outputs
+client/dist/
+client/build/
+server/build/
+dist/
+build/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.sublime-project
+*.sublime-workspace
+.vim/
+.vim
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+.coverage
+
+# Cache
+.cache/
+.eslintcache
+.parcel-cache
+.next
+out
+
+# Misc
+*.pem
+.env*.local
+dist-ssr/
+*.local
+
+# Database
+*.sqlite
+*.sqlite3
+mongodb-data/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
