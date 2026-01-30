@@ -93,18 +93,18 @@ exports.registerTeam = async (req, res) => {
 
         // We don't await this, it runs in background
         cloudinary.uploader.rename(oldPublicId, newPublicId)
-            .then(async () => {
-                // If rename successful, update DB with new URL
-                const newUrl = originalScreenshotUrl.replace(
-                    `${teamName}_${timestamp}`,
-                    `${teamId}-${teamName}`
-                );
-                await Team.updateOne({ teamId }, { 'payment.screenshotUrl': newUrl });
-                console.log(`Background rename successful for ${teamId}`);
+            .then(async (result) => {
+                // Return secure_url from result
+                if (result && result.secure_url) {
+                    await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
+                    console.log(`Background rename successful for ${teamId}, updated URL.`);
+                } else {
+                    console.error(`Rename succeeded but no secure_url returned for ${teamId}`);
+                }
             })
             .catch(err => {
-                // Squelch rename errors so they don't crash app
                 console.error(`Background rename failed for ${teamId}:`, err);
+                // If rename fails, the original URL (pointing to oldPublicId) is still valid, so we do nothing.
             });
 
         // 3. Background: Send Registration Email
