@@ -1,14 +1,18 @@
 const nodemailer = require('nodemailer');
 
 // Create transporter using Gmail (you can modify this for other email services)
-// Create transporter using Gmail (explicit logic for Port 465 SSL to avoid ETIMEDOUT)
+// Create transporter using Gmail (explicit logic for Port 587 STARTTLS)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    port: 587,
+    secure: false, // true for 465, false for 587
     auth: {
         user: process.env.EMAIL_USER || 'your-email@gmail.com',
         pass: process.env.EMAIL_PASS || 'your-app-password'
+    },
+    tls: {
+        ciphers: 'SSLv3', // Help with some handshake issues
+        rejectUnauthorized: false
     },
     connectionTimeout: 10000 // 10 seconds
 });
