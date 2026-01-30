@@ -61,6 +61,8 @@ router.put('/admin/settings/payment', authMiddleware, handleUploadError(uploadQR
 
 // Resend payment verification email
 router.post('/admin/resend-email/:teamId', authMiddleware, teamController.resendPaymentEmail);
+// Explicit email test
+router.post('/admin/test-email', authMiddleware, teamController.testEmail);
 
 // Test endpoint for debugging
 router.post('/admin/test-settings', authMiddleware, async (req, res) => {
@@ -84,7 +86,7 @@ router.post('/admin/seed', authMiddleware, teamController.seedData);
 
 // Test endpoint
 router.get('/admin/test', authMiddleware, (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Auth test passed',
         admin: req.admin,
         timestamp: new Date()
