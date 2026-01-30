@@ -64,24 +64,8 @@ exports.registerTeam = async (req, res) => {
 
         const teamId = await generateTeamId();
 
-        // Rename the screenshot file with format: GENESIS-001-NOVA
-        const timestamp = req.uploadTimestamp || Date.now();
-        const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
-        const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
-
-        let screenshotUrl = req.file.path;
-
-        try {
-            await cloudinary.uploader.rename(oldPublicId, newPublicId);
-            // Update the URL with the new public_id
-            screenshotUrl = screenshotUrl.replace(
-                `${teamName}_${timestamp}`,
-                `${teamId}-${teamName}`
-            );
-        } catch (renameErr) {
-            console.error('Failed to rename screenshot:', renameErr);
-            // Continue with original URL if rename fails
-        }
+        // Use original upload path initially for speed
+        const originalScreenshotUrl = req.file.path;
 
         const newTeam = new Team({
             teamId,
@@ -90,19 +74,45 @@ exports.registerTeam = async (req, res) => {
             members: membersData || [],
             payment: {
                 utr,
-                screenshotUrl: screenshotUrl,
+                screenshotUrl: originalScreenshotUrl,
                 status: 'Pending'
             }
         });
 
         await newTeam.save();
 
-        // Send registration email to team lead
+        // 1. Send Immediate Response to Client
+        res.status(201).json({ message: 'Registration successful', teamId });
+
+        // === START BACKGROUND TASKS ===
+
+        // 2. Background: Rename Screenshot on Cloudinary
+        const timestamp = req.uploadTimestamp || Date.now();
+        const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
+        const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
+
+        // We don't await this, it runs in background
+        cloudinary.uploader.rename(oldPublicId, newPublicId)
+            .then(async () => {
+                // If rename successful, update DB with new URL
+                const newUrl = originalScreenshotUrl.replace(
+                    `${teamName}_${timestamp}`,
+                    `${teamId}-${teamName}`
+                );
+                await Team.updateOne({ teamId }, { 'payment.screenshotUrl': newUrl });
+                console.log(`Background rename successful for ${teamId}`);
+            })
+            .catch(err => {
+                // Squelch rename errors so they don't crash app
+                console.error(`Background rename failed for ${teamId}:`, err);
+            });
+
+        // 3. Background: Send Registration Email
         const leadEmail = leaderData.email;
         const leadName = leaderData.name;
 
         if (leadEmail) {
-            // Send email asynchronously - do not await
+            // Send email asynchronously
             sendRegistrationEmail(teamId, teamName, leadEmail, leadName, membersData)
                 .then(success => {
                     if (success) console.log(`Background email sent to ${leadEmail}`);
@@ -110,8 +120,6 @@ exports.registerTeam = async (req, res) => {
                 })
                 .catch(err => console.error('Background email critical error:', err));
         }
-
-        res.status(201).json({ message: 'Registration successful', teamId });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
