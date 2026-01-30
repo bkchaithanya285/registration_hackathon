@@ -88,11 +88,12 @@ exports.registerTeam = async (req, res) => {
 
         // 2. Background: Rename Screenshot on Cloudinary
         const timestamp = req.uploadTimestamp || Date.now();
-        console.log(`[DEBUG] Rename Logic: teamName=${teamName}, timestamp=${timestamp}, reqTimestamp=${req.uploadTimestamp}`);
 
-        const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
+        // CRITICAL FIX: Use the actual filename (public_id) from the upload result
+        const oldPublicId = req.file.filename;
         const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
-        console.log(`[DEBUG] Attempting rename: ${oldPublicId} -> ${newPublicId}`);
+
+        console.log(`[DEBUG] Rename Logic: File=${oldPublicId} -> ${newPublicId}`);
 
         // We don't await this, it runs in background
         cloudinary.uploader.rename(oldPublicId, newPublicId)
