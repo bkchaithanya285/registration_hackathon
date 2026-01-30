@@ -118,9 +118,9 @@ exports.registerTeam = async (req, res) => {
         if (leadEmail) {
             // Send email asynchronously
             sendRegistrationEmail(teamId, teamName, leadEmail, leadName, membersData)
-                .then(success => {
-                    if (success) console.log(`Background email sent to ${leadEmail}`);
-                    else console.error(`Background email failed for ${leadEmail}`);
+                .then(result => {
+                    if (result.success) console.log(`Background email sent to ${leadEmail}`);
+                    else console.error(`Background email failed for ${leadEmail}:`, result.error);
                 })
                 .catch(err => console.error('Background email critical error:', err));
         }

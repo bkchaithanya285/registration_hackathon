@@ -26,6 +26,10 @@ transporter.verify((error, success) => {
  */
 const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, members) => {
     try {
+        console.log(`\n📧 === SENDING REGISTRATION EMAIL ===`);
+        console.log(`To: ${leadEmail}`);
+        console.log(`Team: ${teamName} (${teamId})`);
+
         const membersListHtml = members.map((m, idx) => `
             <tr>
                 <td style="padding: 8px 10px; color: #e9d5ff;">${idx + 1}. ${m.name}</td>
@@ -93,12 +97,14 @@ const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, memb
             `
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Registration email sent to ${leadEmail}`);
-        return true;
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✓ SUCCESSFULLY sent to ${leadEmail}`);
+        return { success: true, result };
     } catch (error) {
-        console.error('Error sending registration email:', error);
-        return false;
+        console.error(`\n🔥 === FAILED TO SEND REGISTRATION EMAIL ===`);
+        console.error(`To: ${leadEmail}`);
+        console.error(`Error:`, error.message);
+        return { success: false, error: error };
     }
 };
 
@@ -210,7 +216,7 @@ const sendPaymentVerificationEmail = async (teamId, teamName, leadEmail, leadNam
         console.log(`To: ${leadEmail}`);
         console.log(`Team: ${teamName} (${teamId})`);
         console.log(`Status: ${paymentStatus}`);
-        
+
         const result = await transporter.sendMail(mailOptions);
         console.log(`✓ SUCCESSFULLY sent to ${leadEmail}`);
         console.log(`Response ID: ${result.response}`);
