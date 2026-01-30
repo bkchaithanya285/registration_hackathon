@@ -254,49 +254,37 @@ exports.updatePaymentStatus = async (req, res) => {
             team.payment.rejectionReason = "";
         }
 
-        // Send payment verification email to team lead BEFORE saving
+        // Save status first to ensure DB is updated immediately
+        await team.save();
+
+        // Send Immediate Response to UI so it doesn't freeze
+        res.json({ message: 'Payment status updated', team });
+
+        // === BACKGROUND TASK: SEND EMAIL ===
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
-        let emailSentSuccess = false;
-
-        console.log(`Team Lead: ${leadName}`);
-        console.log(`Team Lead Email: ${leadEmail}`);
 
         if (leadEmail) {
-            try {
-                console.log(`📨 Calling sendPaymentVerificationEmail...`);
-                const emailSent = await sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status);
-
-                console.log(`\n📨 Email function returned: ${emailSent} (type: ${typeof emailSent})`);
-
-                if (emailSent === true) {
-                    emailSentSuccess = true;
-                    team.payment.emailSent = true;
-                    team.payment.emailSentAt = new Date();
-                    console.log(`✅ Email marked as sent`);
-                    console.log(`emailSentAt: ${team.payment.emailSentAt}`);
-                } else {
-                    emailSentSuccess = false;
-                    team.payment.emailSent = false;
-                    console.log(`⚠️  Email function returned false or falsy value`);
-                }
-            } catch (emailErr) {
-                console.error(`\n🔥 EXCEPTION while sending email:`);
-                console.error(`Message: ${emailErr.message}`);
-                console.error(`Stack: ${emailErr.stack}`);
-                emailSentSuccess = false;
-                team.payment.emailSent = false;
-            }
-        } else {
-            console.log(`⚠️  No email address found for team lead`);
-            team.payment.emailSent = false;
+            console.log(`📨 [BACKGROUND] Sending payment verification email to ${leadEmail}...`);
+            // Fire and forget - don't await
+            sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status)
+                .then(async (emailSent) => {
+                    // Check logic based on new return object if applicable, or boolean
+                    // Our sendPaymentVerificationEmail returns boolean in current view, so we check truthiness
+                    if (emailSent) {
+                        await Team.updateOne({ teamId }, {
+                            'payment.emailSent': true,
+                            'payment.emailSentAt': new Date()
+                        });
+                        console.log(`✅ [BACKGROUND] Email marked as sent in DB`);
+                    } else {
+                        console.error(`❌ [BACKGROUND] Email send failed`);
+                    }
+                })
+                .catch(err => {
+                    console.error(`\n� [BACKGROUND] EMAIL EXCEPTION:`, err);
+                });
         }
-
-        // Save the team with email status
-        console.log(`\n💾 Saving team...`);
-        console.log(`Before save - emailSent: ${team.payment.emailSent}, emailSentAt: ${team.payment.emailSentAt}`);
-
-        await team.save();
 
         console.log(`✓ Team saved successfully`);
         console.log(`After save - emailSent: ${team.payment.emailSent}, emailSentAt: ${team.payment.emailSentAt}`);
