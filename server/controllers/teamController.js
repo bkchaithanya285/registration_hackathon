@@ -39,16 +39,16 @@ exports.registerTeam = async (req, res) => {
         const { teamName, leader, members, utr } = req.body;
 
         // Check if team name already exists (case-insensitive)
-        const existingTeam = await Team.findOne({ 
-            teamName: { $regex: `^${teamName}$`, $options: 'i' } 
+        const existingTeam = await Team.findOne({
+            teamName: { $regex: `^${teamName}$`, $options: 'i' }
         });
         if (existingTeam) {
             return res.status(400).json({ message: 'Team name already exists. Please choose a different team name.' });
         }
 
         // Check if UTR already exists
-        const existingUTR = await Team.findOne({ 
-            'payment.utr': utr 
+        const existingUTR = await Team.findOne({
+            'payment.utr': utr
         });
         if (existingUTR) {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
@@ -68,9 +68,9 @@ exports.registerTeam = async (req, res) => {
         const timestamp = req.uploadTimestamp || Date.now();
         const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
         const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
-        
+
         let screenshotUrl = req.file.path;
-        
+
         try {
             await cloudinary.uploader.rename(oldPublicId, newPublicId);
             // Update the URL with the new public_id
@@ -102,12 +102,13 @@ exports.registerTeam = async (req, res) => {
         const leadName = leaderData.name;
 
         if (leadEmail) {
-            try {
-                await sendRegistrationEmail(teamId, teamName, leadEmail, leadName, membersData);
-            } catch (emailErr) {
-                console.error('Failed to send registration email:', emailErr);
-                // Don't fail the registration if email fails
-            }
+            // Send email asynchronously - do not await
+            sendRegistrationEmail(teamId, teamName, leadEmail, leadName, membersData)
+                .then(success => {
+                    if (success) console.log(`Background email sent to ${leadEmail}`);
+                    else console.error(`Background email failed for ${leadEmail}`);
+                })
+                .catch(err => console.error('Background email critical error:', err));
         }
 
         res.status(201).json({ message: 'Registration successful', teamId });
@@ -126,23 +127,23 @@ exports.adminCreateTeam = async (req, res) => {
         }
 
         const { teamName, leader, members, utr } = req.body;
-        
+
         // Check if team name already exists (case-insensitive)
-        const existingTeam = await Team.findOne({ 
-            teamName: { $regex: `^${teamName}$`, $options: 'i' } 
+        const existingTeam = await Team.findOne({
+            teamName: { $regex: `^${teamName}$`, $options: 'i' }
         });
         if (existingTeam) {
             return res.status(400).json({ message: 'Team name already exists. Please choose a different team name.' });
         }
 
         // Check if UTR already exists
-        const existingUTR = await Team.findOne({ 
-            'payment.utr': utr 
+        const existingUTR = await Team.findOne({
+            'payment.utr': utr
         });
         if (existingUTR) {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
         }
-        
+
         const leaderData = typeof leader === 'string' ? JSON.parse(leader) : leader;
         const membersData = typeof members === 'string' ? JSON.parse(members) : members;
 
@@ -152,9 +153,9 @@ exports.adminCreateTeam = async (req, res) => {
         const timestamp = req.uploadTimestamp || Date.now();
         const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
         const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
-        
+
         let screenshotUrl = req.file.path;
-        
+
         try {
             await cloudinary.uploader.rename(oldPublicId, newPublicId);
             // Update the URL with the new public_id
@@ -223,7 +224,7 @@ exports.updatePaymentStatus = async (req, res) => {
         console.log(`\n💳 === UPDATE PAYMENT STATUS REQUEST ===`);
         console.log(`Team ID: ${teamId}`);
         console.log(`New Status: ${status}`);
-        
+
         const team = await Team.findOne({ teamId });
         if (!team) {
             console.log(`❌ Team not found: ${teamId}`);
@@ -232,7 +233,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
         console.log(`✓ Found team: ${team.teamName}`);
         console.log(`Current payment status: ${team.payment.status}`);
-        
+
         // Update status
         team.payment.status = status;
         if (status === 'Rejected') {
@@ -240,7 +241,7 @@ exports.updatePaymentStatus = async (req, res) => {
         } else {
             team.payment.rejectionReason = "";
         }
-        
+
         // Send payment verification email to team lead BEFORE saving
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
@@ -253,9 +254,9 @@ exports.updatePaymentStatus = async (req, res) => {
             try {
                 console.log(`📨 Calling sendPaymentVerificationEmail...`);
                 const emailSent = await sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status);
-                
+
                 console.log(`\n📨 Email function returned: ${emailSent} (type: ${typeof emailSent})`);
-                
+
                 if (emailSent === true) {
                     emailSentSuccess = true;
                     team.payment.emailSent = true;
@@ -282,18 +283,18 @@ exports.updatePaymentStatus = async (req, res) => {
         // Save the team with email status
         console.log(`\n💾 Saving team...`);
         console.log(`Before save - emailSent: ${team.payment.emailSent}, emailSentAt: ${team.payment.emailSentAt}`);
-        
+
         await team.save();
-        
+
         console.log(`✓ Team saved successfully`);
         console.log(`After save - emailSent: ${team.payment.emailSent}, emailSentAt: ${team.payment.emailSentAt}`);
-        
+
         const response = {
             message: `Team ${status}${emailSentSuccess ? ' (Email sent)' : ' (Email failed)'}`,
             team,
             emailSent: emailSentSuccess
         };
-        
+
         console.log(`\n✓ === UPDATE PAYMENT STATUS COMPLETE ===\n`);
         res.json(response);
     } catch (err) {
@@ -310,7 +311,7 @@ exports.resendPaymentEmail = async (req, res) => {
     try {
         console.log(`\n📧 === RESEND EMAIL REQUEST ===`);
         console.log(`Team ID: ${teamId}`);
-        
+
         const team = await Team.findOne({ teamId });
         if (!team) {
             console.log(`❌ Team not found: ${teamId}`);
@@ -318,7 +319,7 @@ exports.resendPaymentEmail = async (req, res) => {
         }
 
         console.log(`✓ Team found: ${team.teamName}`);
-        
+
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
         const currentStatus = team.payment.status;
@@ -335,20 +336,20 @@ exports.resendPaymentEmail = async (req, res) => {
         try {
             console.log(`📨 Calling sendPaymentVerificationEmail...`);
             const emailSent = await sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, currentStatus);
-            
+
             console.log(`\n📨 Email function returned: ${emailSent} (type: ${typeof emailSent})`);
-            
+
             if (emailSent === true) {
                 console.log(`✅ Email send successful!`);
                 // Mark email as sent
                 team.payment.emailSent = true;
                 team.payment.emailSentAt = new Date();
-                
+
                 console.log(`💾 Saving team...`);
                 await team.save();
                 console.log(`✓ Team saved with emailSent=${team.payment.emailSent}`);
                 console.log(`✓ emailSentAt=${team.payment.emailSentAt}`);
-                
+
                 console.log(`\n✓ === RESEND EMAIL COMPLETE ===\n`);
                 res.json({ message: 'Email resent successfully', team, emailSent: true });
             } else {
