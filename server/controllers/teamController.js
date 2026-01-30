@@ -731,7 +731,7 @@ exports.testEmail = async (req, res) => {
         );
 
         if (result.success) {
-            res.json({ message: 'Email sent successfully via Nodemailer!' });
+            res.json({ message: 'Email sent successfully via Mailjet!' });
         } else {
             console.error('Test email failed:', result.error);
             // Return the specific error message to the client
