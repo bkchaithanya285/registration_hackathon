@@ -1,22 +1,21 @@
 const nodemailer = require('nodemailer');
 
 // Create transporter using Gmail (you can modify this for other email services)
-// Create transporter using Gmail (explicit logic for Port 587 STARTTLS + IPv4)
+// Create transporter using Gmail (Final attempt: Port 465 SSL + IPv4 + Debugging)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for 587
+    port: 465,
+    secure: true, // true for 465, false for 587
     auth: {
         user: process.env.EMAIL_USER || 'your-email@gmail.com',
         pass: process.env.EMAIL_PASS || 'your-app-password'
     },
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    },
-    // CRITICAL: Force IPv4 as some cloud providers block IPv6 to Gmail, causing ETIMEDOUT
+    // CRITICAL: Force IPv4 to avoid IPv6 timeouts
     family: 4,
-    connectionTimeout: 10000 // 10 seconds
+    logger: true, // Log to console
+    debug: true,  // Include debug info
+    connectionTimeout: 20000, // Increase to 20s
+    socketTimeout: 20000
 });
 
 // Verify transporter connection on startup
