@@ -269,9 +269,8 @@ exports.updatePaymentStatus = async (req, res) => {
             // Fire and forget - don't await
             sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status)
                 .then(async (emailSent) => {
-                    // Check logic based on new return object if applicable, or boolean
-                    // Our sendPaymentVerificationEmail returns boolean in current view, so we check truthiness
-                    if (emailSent) {
+                    // Check logic based on new return object from Mailjet (it returns { success: true/false })
+                    if (emailSent && emailSent.success) {
                         await Team.updateOne({ teamId }, {
                             'payment.emailSent': true,
                             'payment.emailSentAt': new Date()
