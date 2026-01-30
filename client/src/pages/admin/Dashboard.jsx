@@ -107,7 +107,7 @@ const Dashboard = () => {
         if (!token) {
             console.warn('No token found - user might not be logged in');
         }
-        
+
         fetchTeams();
         fetchPaymentSettings();
     }, []);
@@ -134,18 +134,34 @@ const Dashboard = () => {
         try {
             const response = await api.post(`/teams/admin/resend-email/${teamId}`);
             toast.success('Email resent successfully');
-            
+
             // Update the selected team with fresh data
             if (response.data && response.data.team) {
                 setSelectedTeam(response.data.team);
             }
-            
+
             // Also refresh all teams
             fetchTeams();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to resend email');
         } finally {
             setIsResendingEmail(false);
+        }
+    };
+
+    const handleTestEmail = async () => {
+        const email = prompt("Enter email address to send test email to:");
+        if (!email) return;
+
+        try {
+            toast.info("Sending test email...");
+            const res = await api.post('/teams/admin/test-email', { email });
+            toast.success(res.data.message);
+            alert("Success: " + res.data.message);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Email test failed");
+            alert("Error: " + (err.response?.data?.message || err.message));
         }
     };
 
@@ -167,7 +183,7 @@ const Dashboard = () => {
 
     const handleUpdatePaymentSettings = async () => {
         console.log('=== PAYMENT SETTINGS UPDATE ===');
-        
+
         // Validation
         if (!qrFile && !upiId) {
             toast.error('Please upload a QR code or enter a UPI ID');
@@ -179,7 +195,7 @@ const Dashboard = () => {
             // Get token for verification
             const token = localStorage.getItem('token');
             console.log('Token exists:', !!token);
-            
+
             if (!token) {
                 toast.error('Not logged in. Please login first.');
                 setIsUpdatingSettings(false);
@@ -202,7 +218,7 @@ const Dashboard = () => {
 
             console.log('Sending PUT request to /teams/admin/settings/payment');
             const response = await api.put('/teams/admin/settings/payment', formData);
-            
+
             console.log('Success response:', response.data);
             toast.success(response.data.message || 'Payment settings updated successfully');
             setIsSettingsOpen(false);
@@ -217,7 +233,7 @@ const Dashboard = () => {
                 message: err.message,
                 config: err.config
             });
-            
+
             let errorMsg = 'Failed to update settings';
             if (err.response?.status === 401) {
                 errorMsg = 'Session expired. Please login again.';
@@ -229,7 +245,7 @@ const Dashboard = () => {
             } else if (err.message) {
                 errorMsg = err.message;
             }
-            
+
             toast.error(errorMsg);
         } finally {
             setIsUpdatingSettings(false);
@@ -307,8 +323,8 @@ const Dashboard = () => {
     const handleConfirmExport = async () => {
         setIsExporting(true);
         try {
-            const res = await api.post('/teams/admin/export/custom', { 
-                ids: selectedIds, 
+            const res = await api.post('/teams/admin/export/custom', {
+                ids: selectedIds,
                 filters: exportFilters,
                 selectedColumns
             }, { responseType: 'blob' });
@@ -337,6 +353,9 @@ const Dashboard = () => {
                 </div>
                 <div className="space-x-4 flex items-center flex-wrap gap-2">
                     <div className="flex gap-2 flex-wrap">
+                        <button onClick={handleTestEmail} className="px-4 py-2 rounded-xl font-bold bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-200 transition-colors text-sm flex items-center gap-1">
+                            📧 Test Email
+                        </button>
                         <button onClick={() => setIsSettingsOpen(true)} className="px-4 py-2 rounded-xl font-bold bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-200 transition-colors text-sm flex items-center gap-1">
                             ⚙️ Settings
                         </button>
