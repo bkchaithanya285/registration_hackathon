@@ -85,11 +85,7 @@ const Login = () => {
                     </motion.button>
                 </form>
 
-                <div className="mt-6 p-4 rounded-lg bg-secondary/10 border border-secondary/30">
-                    <p className="text-secondary text-xs font-semibold mb-2">Demo Credentials:</p>
-                    <p className="text-secondary/80 text-xs">Username: <span className="font-mono font-bold">genesisbycsi</span></p>
-                    <p className="text-secondary/80 text-xs">Password: <span className="font-mono font-bold">9390198225@csi</span></p>
-                </div>
+
             </motion.div>
         </div>
     );
