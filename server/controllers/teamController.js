@@ -338,7 +338,8 @@ exports.resendPaymentEmail = async (req, res) => {
 
             console.log(`\n📨 Email function returned: ${emailSent} (type: ${typeof emailSent})`);
 
-            if (emailSent === true) {
+            // FIXED: Check for object property success, not strict boolean true
+            if (emailSent && emailSent.success) {
                 console.log(`✅ Email send successful!`);
                 // Mark email as sent
                 team.payment.emailSent = true;
