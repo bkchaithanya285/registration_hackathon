@@ -42,7 +42,9 @@ const PORT = process.env.PORT || 5000;
 // Start server immediately
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`\n>>> DEPLOYED VERSION: EMAIL FIX V5 (Port 465 SSL + IPv4 + Debug) <<<\n`);
+    console.log(`\n>>> DEPLOYED VERSION: EMAIL MIGRATION V6 (BREVO) <<<\n`);
+    console.log(`> Config Check: BREVO_API_KEY is ${process.env.BREVO_API_KEY ? 'SET ✅' : 'MISSING ❌'}`);
+    console.log(`> Config Check: EMAIL_USER is ${process.env.EMAIL_USER || 'MISSING ❌'}`);
 });
 
 console.log('Mongo URI:', process.env.MONGO_URI ? 'Set' : 'Not Set');
