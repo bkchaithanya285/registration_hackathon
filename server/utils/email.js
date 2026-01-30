@@ -1,45 +1,36 @@
-const Mailjet = require('node-mailjet');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
-// Initialize Mailjet with API keys
-// User needs to set these in .env or Render Environment
-const mailjet = Mailjet.apiConnect(
-    process.env.MAILJET_API_KEY,
-    process.env.MAILJET_API_SECRET
-);
+// Configure API key authorization: api-key
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 /**
- * Helper to send email via Mailjet API
+ * Helper to send email via Brevo API
  */
-const sendMailjetEmail = async (toEmail, toName, subject, htmlContent) => {
+const sendBrevoEmail = async (toEmail, toName, subject, htmlContent) => {
     try {
-        const request = mailjet
-            .post("send", { 'version': 'v3.1' })
-            .request({
-                "Messages": [
-                    {
-                        "From": {
-                            "Email": process.env.EMAIL_USER, // Must be a verified sender in Mailjet
-                            "Name": "GENESIS Hackathon"
-                        },
-                        "To": [
-                            {
-                                "Email": toEmail,
-                                "Name": toName
-                            }
-                        ],
-                        "Subject": subject,
-                        "HTMLPart": htmlContent,
-                    }
-                ]
-            });
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
-        const result = await request;
-        console.log(`✓ Mailjet successfully sent to ${toEmail}`);
-        return { success: true, result: result.body };
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.htmlContent = htmlContent;
+        sendSmtpEmail.sender = { "name": "GENESIS Hackathon", "email": process.env.EMAIL_USER };
+        sendSmtpEmail.to = [{ "email": toEmail, "name": toName }];
+
+        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+        console.log(`✓ Brevo successfully sent to ${toEmail}`);
+        return { success: true, result: data };
     } catch (err) {
-        console.error(`\n🔥 Mailjet Error for ${toEmail}:`);
-        console.error(`Status: ${err.statusCode}`);
-        console.error(`Message: ${err.message}`);
+        console.error(`\n🔥 Brevo Error for ${toEmail}:`);
+        // Brevo error objects can be complex, try to log the useful part
+        if (err.response && err.response.text) {
+            console.error(`Message: ${err.response.text}`);
+        } else {
+            console.error(`Message: ${err.message}`);
+        }
         return { success: false, error: err };
     }
 };
@@ -48,7 +39,7 @@ const sendMailjetEmail = async (toEmail, toName, subject, htmlContent) => {
  * Send registration confirmation email to team lead
  */
 const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, members) => {
-    console.log(`\n📧 === SENDING REGISTRATION EMAIL (MAILJET) ===`);
+    console.log(`\n📧 === SENDING REGISTRATION EMAIL (BREVO) ===`);
     console.log(`To: ${leadEmail}`);
 
     const membersListHtml = members.map((m, idx) => `
@@ -114,14 +105,14 @@ const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, memb
     `;
 
     const subject = `🎉 Registration Received - Team ID: ${teamId}`;
-    return await sendMailjetEmail(leadEmail, leadName, subject, htmlContent);
+    return await sendBrevoEmail(leadEmail, leadName, subject, htmlContent);
 };
 
 /**
  * Send payment verification email to team lead
  */
 const sendPaymentVerificationEmail = async (teamId, teamName, leadEmail, leadName, paymentStatus) => {
-    console.log(`\n📧 === SENDING PAYMENT VERIFICATION EMAIL (MAILJET) ===`);
+    console.log(`\n📧 === SENDING PAYMENT VERIFICATION EMAIL (BREVO) ===`);
     console.log(`To: ${leadEmail}`);
     console.log(`Status: ${paymentStatus}`);
 
@@ -220,7 +211,7 @@ const sendPaymentVerificationEmail = async (teamId, teamName, leadEmail, leadNam
     `;
 
     const subject = `${statusIcon} Payment ${statusMessage} - Team ID: ${teamId}`;
-    return await sendMailjetEmail(leadEmail, leadName, subject, htmlContent);
+    return await sendBrevoEmail(leadEmail, leadName, subject, htmlContent);
 };
 
 module.exports = {
