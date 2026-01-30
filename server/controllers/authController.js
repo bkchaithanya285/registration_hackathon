@@ -4,12 +4,20 @@ const bcrypt = require('bcryptjs');
 
 // Seed admin function (internal use)
 exports.seedAdmin = async () => {
-    const count = await Admin.countDocuments();
-    if (count === 0) {
+    // Check if the specific admin exists
+    const adminExists = await Admin.findOne({ username: 'genesisbycsi' });
+
+    if (!adminExists) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('9390198225@csi', salt);
-        await Admin.create({ username: 'admin', password: hashedPassword });
-        console.log('Admin seeded: admin / 9390198225@csi');
+
+        // Optional: Remove old admin if you want to enforce only new one
+        // await Admin.deleteOne({ username: 'admin' });
+
+        await Admin.create({ username: 'genesisbycsi', password: hashedPassword });
+        console.log('Admin seeded: genesisbycsi');
+    } else {
+        console.log('Admin already exists');
     }
 };
 

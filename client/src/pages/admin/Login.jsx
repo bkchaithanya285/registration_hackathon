@@ -15,7 +15,7 @@ const Login = () => {
         if (!username || !password) {
             return toast.error('Please enter username and password');
         }
-        
+
         setLoading(true);
         try {
             const res = await api.post('/auth/login', { username, password });
@@ -39,7 +39,7 @@ const Login = () => {
             >
                 <h2 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center">Admin Portal</h2>
                 <p className="text-primary/60 text-center mb-8">GENESIS Admin Dashboard</p>
-                
+
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
                         <label className="text-sm font-semibold text-primary uppercase tracking-wide block mb-2">Username</label>
@@ -51,7 +51,7 @@ const Login = () => {
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
-                    
+
                     <div>
                         <label className="text-sm font-semibold text-primary uppercase tracking-wide block mb-2">Password</label>
                         <input
@@ -62,9 +62,9 @@ const Login = () => {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-                    
-                    <motion.button 
-                        type="submit" 
+
+                    <motion.button
+                        type="submit"
                         disabled={loading}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -72,7 +72,7 @@ const Login = () => {
                     >
                         {loading ? (
                             <>
-                                <motion.span 
+                                <motion.span
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity }}
                                     className="inline-block border-2 border-white border-t-transparent rounded-full h-4 w-4 mr-2"
@@ -84,11 +84,11 @@ const Login = () => {
                         )}
                     </motion.button>
                 </form>
-                
+
                 <div className="mt-6 p-4 rounded-lg bg-secondary/10 border border-secondary/30">
                     <p className="text-secondary text-xs font-semibold mb-2">Demo Credentials:</p>
-                    <p className="text-secondary/80 text-xs">Username: <span className="font-mono font-bold">admin</span></p>
-                    <p className="text-secondary/80 text-xs">Password: <span className="font-mono font-bold">admin123</span></p>
+                    <p className="text-secondary/80 text-xs">Username: <span className="font-mono font-bold">genesisbycsi</span></p>
+                    <p className="text-secondary/80 text-xs">Password: <span className="font-mono font-bold">9390198225@csi</span></p>
                 </div>
             </motion.div>
         </div>
