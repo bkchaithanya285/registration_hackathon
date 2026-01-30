@@ -743,10 +743,15 @@ exports.testEmail = async (req, res) => {
             [{ name: 'Test Member', registerNumber: '123' }]
         );
 
-        if (result) {
+        if (result.success) {
             res.json({ message: 'Email sent successfully via Nodemailer!' });
         } else {
-            res.status(500).json({ message: 'Nodemailer returned false. Check server logs for exact error.' });
+            console.error('Test email failed:', result.error);
+            // Return the specific error message to the client
+            res.status(500).json({
+                message: 'Email failed: ' + (result.error?.message || 'Unknown error'),
+                error: result.error
+            });
         }
     } catch (err) {
         console.error('Test Email Controller Error:', err);
