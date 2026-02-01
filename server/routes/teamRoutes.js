@@ -4,7 +4,6 @@ const teamController = require('../controllers/teamController');
 
 const { uploadScreenshot, uploadQRCode, generateTeamIdMiddleware } = require('../utils/cloudinary');
 const authMiddleware = require('../middleware/authMiddleware');
-const accessCodeMiddleware = require('../middleware/accessCodeMiddleware');
 
 // Middleware to handle multer errors
 const handleUploadError = (uploadFn) => {
