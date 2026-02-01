@@ -44,7 +44,7 @@ const CheckStatus = () => {
                     <div>
                         <label className="text-sm font-bold text-primary uppercase tracking-wide block mb-2">Team ID</label>
                         <input
-                            placeholder="e.g. GENESIS-042"
+                            placeholder="e.g. CREATOR-042"
                             className="input-field"
                             value={formData.teamId}
                             onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
@@ -117,7 +117,7 @@ const CheckStatus = () => {
                         {result.status === 'Verified' && (
                             <div className="bg-green-50 border-2 border-green-300 p-6 rounded-lg">
                                 <p className="text-green-700 text-xs uppercase tracking-widest font-bold mb-4 text-center">Join Our WhatsApp Group</p>
-                                
+
                                 <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded">
                                     <p className="text-red-700 text-xs font-bold uppercase tracking-wide mb-1">Important Notice</p>
                                     <p className="text-red-600 text-sm">Joining the WhatsApp group is compulsory for event updates and important announcements.</p>
@@ -125,22 +125,22 @@ const CheckStatus = () => {
 
                                 <div className="space-y-3">
                                     <div className="flex justify-center">
-                                        <a 
-                                            href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                            target="_blank" 
+                                        <a
+                                            href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="bg-white p-3 rounded-lg border-2 border-green-400 cursor-pointer hover:shadow-xl hover:border-green-600 transition transform hover:scale-105 shadow-lg"
                                         >
-                                            <img 
-                                                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                                alt="WhatsApp Group QR Code" 
+                                            <img
+                                                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                                alt="WhatsApp Group QR Code"
                                                 className="w-36 h-36 object-contain"
                                             />
                                         </a>
                                     </div>
-                                    <a 
-                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-center transition transform active:scale-95 shadow-lg text-sm"
                                     >

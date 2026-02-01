@@ -16,7 +16,7 @@ const sendBrevoEmail = async (toEmail, toName, subject, htmlContent) => {
 
         sendSmtpEmail.subject = subject;
         sendSmtpEmail.htmlContent = htmlContent;
-        sendSmtpEmail.sender = { "name": "GENESIS Hackathon", "email": process.env.EMAIL_USER };
+        sendSmtpEmail.sender = { "name": "CreateX-Launch Edition", "email": process.env.EMAIL_USER };
         sendSmtpEmail.to = [{ "email": toEmail, "name": toName }];
 
         const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -52,12 +52,13 @@ const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, memb
     const htmlContent = `
         <div style="font-family: 'Arial', sans-serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 50%, #0a0a0a 100%); padding: 20px; color: #fff;">
             <div style="max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(220, 38, 38, 0.3); border-radius: 20px; padding: 40px; backdrop-filter: blur(10px);">
-                <h1 style="color: #ef4444; text-align: center; font-size: 28px; margin-bottom: 20px;">🚀 Welcome to GENESIS</h1>
+                <h1 style="color: #ef4444; text-align: center; font-size: 28px; margin-bottom: 5px;">🚀 Welcome to CreateX</h1>
+                <p style="color: #9ca3af; text-align: center; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin-top: 0; margin-bottom: 20px;">Launch Edition</p>
                 
                 <div style="background: rgba(236, 72, 153, 0.1); border-left: 4px solid #ec4899; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h2 style="color: #ec4899; margin-top: 0;">Registration Received!</h2>
                     <p style="font-size: 16px; line-height: 1.6; margin: 10px 0;">Dear <strong>${leadName}</strong>,</p>
-                    <p style="font-size: 14px; line-height: 1.8;">Thank you for registering your team for GENESIS! We have received your details and payment screenshot.</p>
+                    <p style="font-size: 14px; line-height: 1.8;">Thank you for registering your team for CreateX! We have received your details and payment screenshot.</p>
                 </div>
 
                 <div style="background: rgba(139, 92, 246, 0.1); border: 2px solid rgba(168, 85, 247, 0.3); padding: 20px; border-radius: 12px; margin: 20px 0;">
@@ -97,7 +98,7 @@ const sendRegistrationEmail = async (teamId, teamName, leadEmail, leadName, memb
                         If you have any questions, please reply to this email or contact our support team.
                     </p>
                     <p style="color: #6b7280; font-size: 11px; margin: 10px 0;">
-                        © 2026 GENESIS. All rights reserved.
+                        © 2026 CreateX. All rights reserved.
                     </p>
                 </div>
             </div>
@@ -130,7 +131,7 @@ const sendPaymentVerificationEmail = async (teamId, teamName, leadEmail, leadNam
                     <h2 style="color: ${statusColor}; margin-top: 0;">Dear ${leadName},</h2>
                     <p style="font-size: 16px; line-height: 1.6;">
                         ${isApproved
-            ? `Your payment has been <strong>VERIFIED</strong> and <strong>APPROVED</strong>! Your team is now officially registered for GENESIS.`
+            ? `Your payment has been <strong>VERIFIED</strong> and <strong>APPROVED</strong>! Your team is now officially registered for CreateX.`
             : `Your payment submission has been <strong>REJECTED</strong>. Please review the payment details and resubmit.`
         }
                     </p>
@@ -203,7 +204,7 @@ const sendPaymentVerificationEmail = async (teamId, teamName, leadEmail, leadNam
                         If you have any questions, please reply to this email or contact our support team.
                     </p>
                     <p style="color: #6b7280; font-size: 11px; margin: 10px 0;">
-                        © 2026 GENESIS. All rights reserved.
+                        © 2026 CreateX. All rights reserved.
                     </p>
                 </div>
             </div>

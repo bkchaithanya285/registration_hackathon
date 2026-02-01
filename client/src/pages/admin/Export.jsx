@@ -15,15 +15,15 @@ const Export = () => {
             switch (type) {
                 case 'basic':
                     endpoint = '/teams/admin/export';
-                    filename = 'genesis_summary.csv';
+                    filename = 'createx_summary.csv';
                     break;
                 case 'all-details':
                     endpoint = '/teams/admin/export/all-details';
-                    filename = `genesis_all_details_${new Date().toISOString().split('T')[0]}.csv`;
+                    filename = `createx_all_details_${new Date().toISOString().split('T')[0]}.csv`;
                     break;
                 case 'screenshot':
                     endpoint = '/teams/admin/export/screenshot-details';
-                    filename = `genesis_screenshot_details_${new Date().toISOString().split('T')[0]}.csv`;
+                    filename = `createx_screenshot_details_${new Date().toISOString().split('T')[0]}.csv`;
                     break;
                 default:
                     return;

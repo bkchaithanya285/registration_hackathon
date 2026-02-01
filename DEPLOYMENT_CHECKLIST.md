@@ -1,4 +1,4 @@
-# 🚀 DEPLOYMENT CHECKLIST - GENESIS Hackathon
+# 🚀 DEPLOYMENT CHECKLIST - CreateX Hackathon
 
 ## Pre-Deployment (Do These First)
 
@@ -52,7 +52,7 @@
 #### Alternative: Heroku
 - [ ] Install Heroku CLI
 - [ ] `heroku login`
-- [ ] `heroku create genesis-api`
+- [ ] `heroku create createx-api`
 - [ ] Add environment variables: `heroku config:set MONGO_URI=...`
 - [ ] Push to deploy: `git push heroku main`
 - [ ] Get API URL

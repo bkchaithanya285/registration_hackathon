@@ -1,8 +1,8 @@
-# 📖 GENESIS Registration System - Complete Documentation Index
+# 📖 CreateX Registration System - Complete Documentation Index
 
 ## 🎉 Latest Update: Version 2.0 (January 28, 2026)
 
-Welcome! This is your complete guide to the updated GENESIS registration system. Everything is implemented and ready to use!
+Welcome! This is your complete guide to the updated CreateX registration system. Everything is implemented and ready to use!
 
 ---
 
@@ -438,7 +438,7 @@ For issues or questions:
 
 ---
 
-**Welcome to GENESIS 2.0! 🎉**
+**Welcome to CreateX 2.0! 🎉**
 
 *All systems ready. Let's register some amazing teams!* 🚀
 

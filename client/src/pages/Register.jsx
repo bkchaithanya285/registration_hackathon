@@ -91,7 +91,7 @@ const Register = () => {
                 className="glass-card p-8"
             >
                 <h2 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Team Registration</h2>
-                <p className="text-primary/70 mb-6">Join the GENESIS Hackathon</p>
+                <p className="text-primary/70 mb-6 text-lg">Join <span className="text-3xl font-bold text-primary">CreateX</span>: Launch Edition</p>
 
                 <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg mb-6">
                     <p className="text-primary text-sm font-semibold">📋 Team Requirements</p>
@@ -111,7 +111,7 @@ const Register = () => {
 
                     {/* Team Name */}
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-primary ml-1">Team Name <span className="text-red-500">*</span></label>
+                        <label className="text-xl font-bold text-primary ml-1">Team Name <span className="text-red-500">*</span></label>
                         <input
                             {...register("teamName", { required: "Team Name is required", onChange: (e) => { e.target.value = e.target.value.toUpperCase(); } })}
                             className="input-field uppercase"

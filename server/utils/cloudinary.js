@@ -28,9 +28,9 @@ const screenshotStorage = new CloudinaryStorage({
     params: async (req, file) => {
         const teamName = req.body?.teamName || 'unknown';
         const timestamp = req.uploadTimestamp || Date.now();
-        
+
         return {
-            folder: 'genesis_hackathon/screenshots',
+            folder: 'createx_hackathon/screenshots',
             allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
             resource_type: 'auto',
             public_id: `${teamName}_${timestamp}`
@@ -43,7 +43,7 @@ const qrCodeStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
         return {
-            folder: 'genesis_hackathon/qrcodes',
+            folder: 'createx_hackathon/qrcodes',
             allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
             resource_type: 'auto',
             public_id: `qr_${Date.now()}`

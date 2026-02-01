@@ -36,11 +36,14 @@ const Landing = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-0 tracking-tight">
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent">
-                            GENESIS
+                            CreateX
                         </span>
                     </h1>
+                    <p className="text-xl md:text-2xl font-light tracking-[0.5em] text-slate-400 uppercase mb-6">
+                        Launch Edition
+                    </p>
 
                     <p className="text-sm md:text-base text-slate-500 font-bold uppercase tracking-widest mb-2">
                         The Biggest Collaboration of KARE
@@ -49,9 +52,6 @@ const Landing = () => {
                         CSI × OWASP × CYBERNERDS
                     </p>
 
-                    <p className="text-lg text-light-subtext mb-12 font-medium">
-                        The Future of Innovation Begins Here
-                    </p>
 
                     {/* Event Details */}
                     <div className="flex flex-wrap justify-center gap-8 mb-12">
@@ -127,7 +127,7 @@ const Landing = () => {
             </div>
 
             <footer className="absolute bottom-6 text-light-subtext/60 text-sm font-medium">
-                © {new Date().getFullYear()} Genesis Hackathon. All rights reserved.
+                © {new Date().getFullYear()} CreateX. All rights reserved.
             </footer>
         </div>
     );

@@ -4,20 +4,28 @@ const bcrypt = require('bcryptjs');
 
 // Seed admin function (internal use)
 exports.seedAdmin = async () => {
-    // 1. Remove legacy admin if exists
-    await Admin.deleteOne({ username: 'admin' });
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    // 2. Check if the specific new admin exists
-    const adminExists = await Admin.findOne({ username: 'genesisbycsi' });
+    if (!adminPassword) {
+        console.log('Admin password not set in .env, skipping seed');
+        return;
+    }
+
+    // 1. Remove legacy admins including specific ones we've used before
+    await Admin.deleteMany({ username: { $in: ['admin', 'genesisbycsi', 'createxbycsi'] } });
+
+    // 2. Check if the specific new admin exists (extra safety)
+    const adminExists = await Admin.findOne({ username: adminUsername });
 
     if (!adminExists) {
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('9390198225@csi', salt);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
-        await Admin.create({ username: 'genesisbycsi', password: hashedPassword });
-        console.log('Admin seeded: genesisbycsi (and legacy admin removed)');
+        await Admin.create({ username: adminUsername, password: hashedPassword });
+        console.log(`Admin seeded: ${adminUsername} (and legacy admins removed)`);
     } else {
-        console.log('Admin already exists (legacy admin removed if present)');
+        console.log(`Admin ${adminUsername} already exists (legacy admins removed)`);
     }
 };
 

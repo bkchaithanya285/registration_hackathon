@@ -107,7 +107,7 @@ exports.registerTeam = async (req, res) => {
 
         // CRITICAL FIX: Use the actual filename (public_id) from the upload result
         const oldPublicId = req.file.filename;
-        const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
+        const newPublicId = `createx_hackathon/screenshots/${teamId}-${teamName}`;
 
         console.log(`[DEBUG] Rename Logic: File=${oldPublicId} -> ${newPublicId}`);
 
@@ -177,10 +177,10 @@ exports.adminCreateTeam = async (req, res) => {
 
         const teamId = await generateTeamId();
 
-        // Rename the screenshot file with format: GENESIS-001-NOVA
+        // Rename the screenshot file with format: CREATOR-001-NOVA
         const timestamp = req.uploadTimestamp || Date.now();
-        const oldPublicId = `genesis_hackathon/screenshots/${teamName}_${timestamp}`;
-        const newPublicId = `genesis_hackathon/screenshots/${teamId}-${teamName}`;
+        const oldPublicId = `createx_hackathon/screenshots/${teamName}_${timestamp}`;
+        const newPublicId = `createx_hackathon/screenshots/${teamId}-${teamName}`;
 
         let screenshotUrl = req.file.path;
 
@@ -497,7 +497,7 @@ exports.exportData = async (req, res) => {
         const csv = json2csvParser.parse(rows);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment('genesis_registrations.csv');
+        res.attachment('createx_registrations.csv');
         res.send(csv);
     } catch (err) {
         console.error(err);
@@ -512,7 +512,7 @@ exports.exportAllDetails = async (req, res) => {
         const csv = await exportAllDetails(teams);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment(`genesis_all_details_${new Date().toISOString().split('T')[0]}.csv`);
+        res.attachment(`createx_all_details_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
     } catch (err) {
         console.error(err);
@@ -527,7 +527,7 @@ exports.exportScreenshotDetails = async (req, res) => {
         const csv = await exportScreenshotDetails(teams);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment(`genesis_screenshot_details_${new Date().toISOString().split('T')[0]}.csv`);
+        res.attachment(`createx_screenshot_details_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
     } catch (err) {
         console.error(err);
@@ -683,7 +683,7 @@ exports.customExport = async (req, res) => {
         const csv = json2csvParser.parse(rows);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment(`genesis_custom_export_${new Date().toISOString().split('T')[0]}.csv`);
+        res.attachment(`createx_custom_export_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
     } catch (err) {
         console.error(err);
@@ -697,7 +697,7 @@ exports.seedData = async (req, res) => {
         await Team.deleteMany({}); // Optional: connect to empty DB
         const dummyTeams = [];
         for (let i = 1; i <= 10; i++) {
-            const teamId = `GENESIS-00${i}`;
+            const teamId = `CREATOR-00${i}`;
             dummyTeams.push({
                 teamId,
                 teamName: `Team Alpha ${i}`,

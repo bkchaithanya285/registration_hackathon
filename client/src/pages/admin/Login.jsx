@@ -38,7 +38,7 @@ const Login = () => {
                 className="glass-card p-10 max-w-md w-full"
             >
                 <h2 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center">Admin Portal</h2>
-                <p className="text-primary/60 text-center mb-8">GENESIS Admin Dashboard</p>
+                <p className="text-primary/60 text-center mb-8">CreateX Admin Dashboard</p>
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>

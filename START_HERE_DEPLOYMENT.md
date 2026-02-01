@@ -47,14 +47,14 @@
 3. Select this repository
 4. Add environment variables:
    ```
-   MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/genesis
+   MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/createx
    JWT_SECRET=generate-random-32-char-string
    CLOUDINARY_CLOUD_NAME=your-value
    CLOUDINARY_API_KEY=your-value
    CLOUDINARY_API_SECRET=your-value
    EMAIL_USER=your-email@gmail.com
    EMAIL_PASS=app-specific-password
-   ADMIN_ACCESS_CODE=genesis2026
+   ADMIN_ACCESS_CODE=createx2026
    ```
 5. Click Deploy
 6. Get API URL from Railway dashboard

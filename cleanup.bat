@@ -1,9 +1,9 @@
 @echo off
-REM GENESIS Hackathon - Cleanup Script (Windows)
+REM CreateX Hackathon - Cleanup Script (Windows)
 
 echo.
 echo ========================================
-echo GENESIS Deployment Cleanup
+echo CreateX Deployment Cleanup
 echo ========================================
 echo.
 echo Removing unnecessary documentation files...

@@ -25,7 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
 
 app.get('/', (req, res) => {
-    res.send('GENESIS Hackathon API Running');
+    res.send('CreateX Registration API Running');
 });
 
 // Global error handler
@@ -51,7 +51,7 @@ console.log('Mongo URI:', process.env.MONGO_URI ? 'Set' : 'Not Set');
 
 // Connect to MongoDB asynchronously
 mongoose
-    .connect(process.env.MONGO_URI || "mongodb://localhost:27017/genesis_hackathon")
+    .connect(process.env.MONGO_URI || "mongodb://localhost:27017/createx_hackathon")
     .then(async () => {
         console.log('MongoDB Connected');
         try {

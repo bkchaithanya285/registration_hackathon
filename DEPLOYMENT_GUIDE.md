@@ -1,4 +1,4 @@
-# GENESIS Registration Portal - Deployment Guide
+# CreateX Registration Portal - Deployment Guide
 
 ## 📋 Project Overview
 - **Frontend**: React + Vite (Registration + Admin Portal)
@@ -10,12 +10,12 @@
 ## 🚀 Deployment Strategy: Dual Links
 
 ### **Link 1: Registration Portal**
-- URL: `https://genesis-registration.yourdomain.com`
+- URL: `https://createx-registration.yourdomain.com`
 - Purpose: Public registration and payment status check
 - Routes: Landing, Register, Review, Payment, Success, CheckStatus
 
 ### **Link 2: Admin Portal**
-- URL: `https://genesis-admin.yourdomain.com`
+- URL: `https://createx-admin.yourdomain.com`
 - Purpose: Admin dashboard for payment verification and exports
 - Routes: Admin Login, Dashboard, Export
 
@@ -34,7 +34,7 @@ Registration/
 │   │   ├── api.js            # API configuration
 │   │   ├── App.jsx           # Router setup
 │   │   ├── main.jsx          # Entry point
-│   │   └── index.css         # Global styles
+│   │   ├── index.css         # Global styles
 │   ├── public/               # Static assets
 │   ├── package.json
 │   ├── vite.config.js
@@ -140,7 +140,7 @@ const api = axios.create({
 ```bash
 # Install Heroku CLI
 heroku login
-heroku create genesis-hackathon-api
+heroku create createx-hackathon-api
 heroku config:set PORT=5000
 heroku config:set MONGO_URI="your-mongodb-uri"
 heroku config:set JWT_SECRET="your-secret"
@@ -204,7 +204,7 @@ VITE_ADMIN_MODE=true
 ```
 1. Create cluster at mongodb.com
 2. Create database user (NOT admin)
-3. Get connection string: mongodb+srv://user:pass@cluster.mongodb.net/genesis_hackathon
+3. Get connection string: mongodb+srv://user:pass@cluster.mongodb.net/createx_hackathon
 4. Whitelist all IPs (0.0.0.0/0) for production OR specific server IPs
 ```
 
@@ -278,7 +278,7 @@ ADMIN_ACCESS_CODE   - Admin registration code
 ### Required for Frontend
 ```
 VITE_API_URL        - Backend API endpoint
-VITE_APP_NAME       - "GENESIS Hackathon"
+VITE_APP_NAME       - "CreateX Hackathon"
 ```
 
 ---

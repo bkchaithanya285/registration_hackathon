@@ -317,7 +317,7 @@ const Dashboard = () => {
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `genesis_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `createx_export_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();

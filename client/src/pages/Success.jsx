@@ -54,7 +54,7 @@ const Success = () => {
                         transition={{ delay: 0.4 }}
                         className="text-white/90 text-lg"
                     >
-                        Your team is registered for GENESIS Hackathon
+                        Your team is registered for CreateX: Launch Edition
                     </motion.p>
                 </div>
 
@@ -122,23 +122,23 @@ const Success = () => {
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                     <svg className="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004c-1.025 0-2.031.313-2.896.893L4.734 3.47 5.703 6.303c-.666.823-1.023 1.892-1.023 2.964 0 3.289 2.676 5.965 5.965 5.965 1.588 0 3.083-.616 4.209-1.741 1.125-1.125 1.742-2.62 1.742-4.209 0-3.288-2.676-5.965-5.965-5.965"/>
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004c-1.025 0-2.031.313-2.896.893L4.734 3.47 5.703 6.303c-.666.823-1.023 1.892-1.023 2.964 0 3.289 2.676 5.965 5.965 5.965 1.588 0 3.083-.616 4.209-1.741 1.125-1.125 1.742-2.62 1.742-4.209 0-3.288-2.676-5.965-5.965-5.965" />
                                     </svg>
                                     <p className="text-green-700 font-bold text-sm uppercase tracking-wide">Join WhatsApp Group (Compulsory)</p>
                                 </div>
                                 <p className="text-green-700 text-sm mb-3">Stay updated with event announcements and important information</p>
                                 <div className="flex gap-3 flex-wrap">
-                                    <a 
-                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition transform active:scale-95"
                                     >
                                         Open WhatsApp
                                     </a>
-                                    <a 
-                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 font-bold py-2 px-4 rounded-lg text-sm transition"
                                     >
@@ -152,9 +152,9 @@ const Success = () => {
                                 rel="noopener noreferrer"
                                 className="cursor-pointer group"
                             >
-                                <img 
-                                    src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t" 
-                                    alt="WhatsApp QR Code - Click to join" 
+                                <img
+                                    src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://chat.whatsapp.com/J9FBRwUSbNwERWUDTApVgV?mode=gi_t"
+                                    alt="WhatsApp QR Code - Click to join"
                                     className="w-24 h-24 rounded-lg border-2 border-green-400 shadow-md hover:shadow-xl hover:border-green-600 transition transform hover:scale-110 group-hover:brightness-110"
                                 />
                             </a>

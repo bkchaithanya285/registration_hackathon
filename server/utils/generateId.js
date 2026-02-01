@@ -9,7 +9,7 @@ const generateTeamId = async () => {
             nextId = lastIdNum + 1;
         }
     }
-    return `GENESIS-${String(nextId).padStart(3, '0')}`;
+    return `CREATOR-${String(nextId).padStart(3, '0')}`;
 };
 
 module.exports = generateTeamId;

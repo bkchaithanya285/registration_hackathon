@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# GENESIS Hackathon - Deployment Setup Script
+# CreateX Hackathon - Deployment Setup Script
 # This script cleans up the project and prepares for deployment
 
 echo "🧹 Cleaning up unnecessary documentation files..."
