@@ -42,8 +42,11 @@ const Landing = () => {
                         </span>
                     </h1>
 
-                    <p className="text-xl md:text-2xl text-light-subtext mb-2 font-semibold">
-                        A Hackathon Conducted by <span className="text-primary font-extrabold">CSI Club</span>
+                    <p className="text-sm md:text-base text-slate-500 font-bold uppercase tracking-widest mb-2">
+                        The Biggest Collaboration of KARE
+                    </p>
+                    <p className="text-xl md:text-3xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
+                        CSI × OWASP × CYBERNERDS
                     </p>
 
                     <p className="text-lg text-light-subtext mb-12 font-medium">
