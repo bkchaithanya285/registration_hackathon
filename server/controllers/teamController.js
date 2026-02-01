@@ -23,6 +23,22 @@ exports.getStats = async (req, res) => {
     }
 };
 
+// Check Team Name Availability
+exports.checkTeamName = async (req, res) => {
+    try {
+        const { name } = req.query;
+        if (!name) return res.status(400).json({ message: 'Name is required' });
+
+        const existingTeam = await Team.findOne({
+            teamName: { $regex: `^${name}$`, $options: 'i' }
+        });
+
+        res.json({ available: !existingTeam });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Participant Registration
 exports.registerTeam = async (req, res) => {
     try {

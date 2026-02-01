@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { yearToRoman } from '../utils/romanNumerals';
+import api from '../api';
 
 const Review = () => {
     const { state } = useLocation();
@@ -19,8 +20,21 @@ const Review = () => {
 
     const { teamName, leader, members } = data;
 
-    const handleConfirm = () => {
-        navigate('/payment', { state: { registrationData: data } });
+    const handleConfirm = async () => {
+        try {
+            const res = await api.get('/teams/stats');
+            if (res.data.isRegistrationOpen === false) {
+                alert('Registration has just closed! Limit reached.');
+                navigate('/');
+                return;
+            }
+            navigate('/payment', { state: { registrationData: data } });
+        } catch (err) {
+            console.error(err);
+            // If check fails, maybe let them proceed or allow retry? 
+            // Better to let them try to avoid blocking if just network glitch
+            navigate('/payment', { state: { registrationData: data } });
+        }
     };
 
     const handleEdit = () => {

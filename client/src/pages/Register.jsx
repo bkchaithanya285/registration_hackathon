@@ -11,7 +11,7 @@ const Register = () => {
     const { state } = useLocation();
     const isEditing = state?.isEditing || false;
 
-    const { register, control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { register, control, handleSubmit, watch, setError, clearErrors, formState: { errors } } = useForm({
         defaultValues: {
             teamName: state?.registrationData?.teamName || '',
             leader: state?.registrationData?.leader || { yearOfStudy: '', department: '', email: '', teamLeadEmail: '', gender: '' },
@@ -118,6 +118,21 @@ const Register = () => {
                             placeholder="Enter Team Name"
                             style={{ textTransform: 'uppercase' }}
                             onInput={(e) => { e.target.value = e.target.value.toUpperCase(); }}
+                            onBlur={async (e) => {
+                                const val = e.target.value;
+                                if (val) {
+                                    try {
+                                        const res = await api.get(`/teams/check-name?name=${val}`);
+                                        if (!res.data.available) {
+                                            setError('teamName', { type: 'manual', message: 'Team Name already taken' });
+                                        } else {
+                                            clearErrors('teamName');
+                                        }
+                                    } catch (err) {
+                                        console.error(err);
+                                    }
+                                }
+                            }}
                         />
                         {errors.teamName && <span className="text-red-500 text-xs ml-1 font-medium">{errors.teamName.message}</span>}
                     </div>

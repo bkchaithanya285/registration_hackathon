@@ -39,6 +39,7 @@ router.get('/payment-settings', async (req, res) => {
         res.status(500).json({ message: 'Server error: ' + err.message });
     }
 });
+router.get('/check-name', teamController.checkTeamName);
 router.post('/register', generateTeamIdMiddleware, uploadScreenshot.single('screenshot'), teamController.registerTeam);
 router.get('/status', teamController.checkStatus);
 
