@@ -3,7 +3,6 @@ const generateTeamId = require('../utils/generateId');
 const { Parser } = require('json2csv');
 const Setting = require('../models/Setting');
 const { sendRegistrationEmail, sendPaymentVerificationEmail } = require('../utils/email');
-const { exportAllDetails, exportScreenshotDetails } = require('../utils/exportExcel');
 const { cloudinary } = require('../utils/cloudinary');
 
 const getLimit = async () => {
@@ -429,52 +428,69 @@ exports.deleteAllTeams = async (req, res) => {
     }
 };
 
-// Export All Details (Full Database Dump)
+// Export All Details (Participant-based Row Structure)
 exports.exportAllDetails = async (req, res) => {
     try {
         const teams = await Team.find().sort({ createdAt: -1 });
         const rows = [];
 
         teams.forEach(team => {
-            const baseData = {
-                'Team ID': team.teamId,
-                'Team Name': team.teamName,
-                'Payment Status': team.payment.status,
-                'Amount': team.payment.amount,
-                'UTR': team.payment.utr,
-                'Screenshot URL': team.payment.screenshotUrl,
-                'Registration Date': new Date(team.createdAt).toLocaleString(),
-
-                // Lead Details
-                'Lead Name': team.leader.name,
-                'Lead Email': team.leader.email,
-                'Lead Phone': team.leader.mobileNumber,
-                'Lead RegNo': team.leader.registerNumber,
-                'Lead Dept': team.leader.department || '',
-                'Lead Year': team.leader.yearOfStudy || '',
-                'Lead Gender': team.leader.gender || '',
-                'Lead Accommodation': team.leader.isHosteler ? 'Hosteller' : 'Day Scholar',
-                'Lead Hostel': team.leader.hostelName || '',
-                'Lead Room': team.leader.roomNumber || '',
+            if (!team) return;
+            // Common Data for all participants in this team
+            const commonData = {
+                'Team ID': team.teamId || '',
+                'Team Name': team.teamName || '',
+                'Payment Status': team.payment?.status || '',
+                'Amount': team.payment?.amount || '',
+                'UTR': team.payment?.utr || '',
+                'Screenshot URL': team.payment?.screenshotUrl || '',
+                'Registration Date': team.createdAt ? new Date(team.createdAt).toLocaleString() : '',
             };
 
-            // Flatten Members (Max 4)
-            team.members.forEach((member, idx) => {
-                const num = idx + 1;
-                baseData[`Member ${num} Name`] = member.name;
-                baseData[`Member ${num} Email`] = member.email || '';
-                baseData[`Member ${num} Phone`] = member.mobileNumber;
-                baseData[`Member ${num} RegNo`] = member.registerNumber;
-                baseData[`Member ${num} Dept`] = member.department || '';
-                baseData[`Member ${num} Year`] = member.yearOfStudy || '';
-                baseData[`Member ${num} Gender`] = member.gender || '';
-                baseData[`Member ${num} Accommodation`] = member.isHosteler ? 'Hosteller' : 'Day Scholar';
-                baseData[`Member ${num} Hostel`] = member.hostelName || '';
-                baseData[`Member ${num} Room`] = member.roomNumber || '';
-            });
+            // Add Leader Row
+            if (team.leader) {
+                rows.push({
+                    ...commonData,
+                    'Role': 'Team Lead',
+                    'Name': team.leader.name || '',
+                    'Email': team.leader.email || '',
+                    'Phone': team.leader.mobileNumber || '',
+                    'RegNo': team.leader.registerNumber || '',
+                    'Details': `Dept: ${team.leader.department || '-'}, Year: ${team.leader.yearOfStudy || '-'}, Gender: ${team.leader.gender || '-'}, Acc: ${team.leader.isHosteler ? 'Hosteller' : 'Day Scholar'}`,
+                    'Department': team.leader.department || '',
+                    'Year': team.leader.yearOfStudy || '',
+                    'Gender': team.leader.gender || '',
+                    'Accommodation': team.leader.isHosteler ? 'Hosteller' : 'Day Scholar',
+                    'Hostel': team.leader.hostelName || '',
+                    'Room': team.leader.roomNumber || '',
+                });
+            }
 
-            rows.push(baseData);
+            // Add Member Rows
+            if (team.members && Array.isArray(team.members)) {
+                team.members.forEach(member => {
+                    rows.push({
+                        ...commonData,
+                        'Role': 'Member',
+                        'Name': member.name || '',
+                        'Email': member.email || '',
+                        'Phone': member.mobileNumber || '',
+                        'RegNo': member.registerNumber || '',
+                        'Details': `Dept: ${member.department || '-'}, Year: ${member.yearOfStudy || '-'}, Gender: ${member.gender || '-'}, Acc: ${member.isHosteler ? 'Hosteller' : 'Day Scholar'}`,
+                        'Department': member.department || '',
+                        'Year': member.yearOfStudy || '',
+                        'Gender': member.gender || '',
+                        'Accommodation': member.isHosteler ? 'Hosteller' : 'Day Scholar',
+                        'Hostel': member.hostelName || '',
+                        'Room': member.roomNumber || '',
+                    });
+                });
+            }
         });
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'No data to export' });
+        }
 
         const json2csvParser = new Parser();
         const csv = json2csvParser.parse(rows);
