@@ -13,10 +13,7 @@ const Export = () => {
             let filename = '';
 
             switch (type) {
-                case 'basic':
-                    endpoint = '/teams/admin/export';
-                    filename = 'createx_summary.csv';
-                    break;
+                // 'basic' case removed as it's no longer used
                 case 'all-details':
                     endpoint = '/teams/admin/export/all-details';
                     filename = `createx_all_details_${new Date().toISOString().split('T')[0]}.csv`;
@@ -51,30 +48,6 @@ const Export = () => {
         }
     };
 
-    const exportOptions = [
-        {
-            id: 'basic',
-            title: '📊 Summary Export',
-            description: 'Team Code, Name, Payment Status',
-            details: 'Quick overview of all teams',
-            color: 'from-primary to-primary-dark'
-        },
-        {
-            id: 'all-details',
-            title: '📋 Complete Details',
-            description: 'All participant info (Name, Email, Phone, Dept, Year, etc.)',
-            details: 'Full registration data for each member',
-            color: 'from-secondary to-secondary-dark'
-        },
-        {
-            id: 'screenshot',
-            title: '📸 Payment Screenshots',
-            description: 'Team Code, Name, Screenshot Links',
-            details: 'Payment proof and verification details',
-            color: 'from-accent to-amber-600'
-        }
-    ];
-
     return (
         <div className="min-h-screen p-8">
             <motion.div
@@ -87,8 +60,8 @@ const Export = () => {
                 </h2>
                 <p className="text-primary/60 mb-12">Download registration data in CSV format</p>
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {/* Option 1: Whole Data */}
+                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    {/* Option 1: All Team Data */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -98,8 +71,8 @@ const Export = () => {
                         <div className="bg-primary/20 p-6 rounded-full mb-6">
                             <span className="text-4xl">📋</span>
                         </div>
-                        <h3 className="text-2xl font-bold mb-3 text-white">All Details</h3>
-                        <p className="text-slate-400 mb-8">Export complete details of all teams and members including payments.</p>
+                        <h3 className="text-2xl font-bold mb-3 text-white">All Team Data</h3>
+                        <p className="text-slate-400 mb-8">Export complete CSV with Lead Details, All Members, and Payment Info.</p>
 
                         <motion.button
                             onClick={() => handleExport('all-details')}
@@ -111,12 +84,12 @@ const Export = () => {
                             {loading === 'all-details' ? (
                                 <span className="loader"></span>
                             ) : (
-                                <>Download CSV</>
+                                <>Download Data CSV</>
                             )}
                         </motion.button>
                     </motion.div>
 
-                    {/* Option 2: Team ID, Name, QR */}
+                    {/* Option 2: Payment Screenshots */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -126,8 +99,8 @@ const Export = () => {
                         <div className="bg-accent/20 p-6 rounded-full mb-6">
                             <span className="text-4xl">📸</span>
                         </div>
-                        <h3 className="text-2xl font-bold mb-3 text-white">Screenshots Details</h3>
-                        <p className="text-slate-400 mb-8">Export a simplified list containing only Team ID, Name, and Payment Screenshots.</p>
+                        <h3 className="text-2xl font-bold mb-3 text-white">Payment Proofs</h3>
+                        <p className="text-slate-400 mb-8">Export simplified CSV with Team ID, Team Name, and Screenshot URL.</p>
 
                         <motion.button
                             onClick={() => handleExport('screenshot')}
@@ -139,7 +112,7 @@ const Export = () => {
                             {loading === 'screenshot' ? (
                                 <span className="loader"></span>
                             ) : (
-                                <>Download CSV</>
+                                <>Download Proofs CSV</>
                             )}
                         </motion.button>
                     </motion.div>

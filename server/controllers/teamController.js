@@ -141,8 +141,9 @@ exports.registerTeam = async (req, res) => {
                 .catch(err => console.error('Background email critical error:', err));
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('REGISTRATION ERROR:', err.message);
+        if (err.errors) console.error('VALIDATION DETAILS:', JSON.stringify(err.errors, null, 2));
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
 
@@ -505,32 +506,87 @@ exports.exportData = async (req, res) => {
     }
 };
 
-// Export All Team Details to CSV (Team Code, Team Name, All Info)
+// Export All Details (Full Database Dump)
 exports.exportAllDetails = async (req, res) => {
     try {
-        const teams = await Team.find();
-        const csv = await exportAllDetails(teams);
+        const teams = await Team.find().sort({ createdAt: -1 });
+        const rows = [];
+
+        teams.forEach(team => {
+            const baseData = {
+                'Team ID': team.teamId,
+                'Team Name': team.teamName,
+                'Payment Status': team.payment.status,
+                'Amount': team.payment.amount,
+                'UTR': team.payment.utr,
+                'Screenshot URL': team.payment.screenshotUrl,
+                'Registration Date': new Date(team.createdAt).toLocaleString(),
+
+                // Lead Details
+                'Lead Name': team.leader.name,
+                'Lead Email': team.leader.email,
+                'Lead Phone': team.leader.mobileNumber,
+                'Lead RegNo': team.leader.registerNumber,
+                'Lead Dept': team.leader.department || '',
+                'Lead Year': team.leader.yearOfStudy || '',
+                'Lead Gender': team.leader.gender || '',
+                'Lead Accommodation': team.leader.isHosteler ? 'Hosteller' : 'Day Scholar',
+                'Lead Hostel': team.leader.hostelName || '',
+                'Lead Room': team.leader.roomNumber || '',
+            };
+
+            // Flatten Members (Max 4)
+            team.members.forEach((member, idx) => {
+                const num = idx + 1;
+                baseData[`Member ${num} Name`] = member.name;
+                baseData[`Member ${num} Email`] = member.email || '';
+                baseData[`Member ${num} Phone`] = member.mobileNumber;
+                baseData[`Member ${num} RegNo`] = member.registerNumber;
+                baseData[`Member ${num} Dept`] = member.department || '';
+                baseData[`Member ${num} Year`] = member.yearOfStudy || '';
+                baseData[`Member ${num} Gender`] = member.gender || '';
+                baseData[`Member ${num} Accommodation`] = member.isHosteler ? 'Hosteller' : 'Day Scholar';
+                baseData[`Member ${num} Hostel`] = member.hostelName || '';
+                baseData[`Member ${num} Room`] = member.roomNumber || '';
+            });
+
+            rows.push(baseData);
+        });
+
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(rows);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment(`createx_all_details_${new Date().toISOString().split('T')[0]}.csv`);
+        res.attachment(`createx_all_data_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
+
     } catch (err) {
-        console.error(err);
+        console.error('Export All Details Error:', err);
         res.status(500).json({ message: 'Export failed' });
     }
 };
 
-// Export Screenshot Details to CSV (Team Code, Team Name, Screenshot Link)
+// Export Screenshot Details (Simplified)
 exports.exportScreenshotDetails = async (req, res) => {
     try {
-        const teams = await Team.find();
-        const csv = await exportScreenshotDetails(teams);
+        const teams = await Team.find().select('teamId teamName payment.screenshotUrl payment.status');
+
+        const rows = teams.map(team => ({
+            'Team ID': team.teamId,
+            'Team Name': team.teamName,
+            'Screenshot URL': team.payment.screenshotUrl || 'No Screenshot',
+            'Status': team.payment.status
+        }));
+
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(rows);
 
         res.header('Content-Type', 'text/csv');
-        res.attachment(`createx_screenshot_details_${new Date().toISOString().split('T')[0]}.csv`);
+        res.attachment(`createx_payment_proofs_${new Date().toISOString().split('T')[0]}.csv`);
         res.send(csv);
+
     } catch (err) {
-        console.error(err);
+        console.error('Export Screenshot Details Error:', err);
         res.status(500).json({ message: 'Export failed' });
     }
 };
