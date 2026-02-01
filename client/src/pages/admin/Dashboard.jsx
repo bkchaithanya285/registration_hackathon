@@ -149,21 +149,7 @@ const Dashboard = () => {
         }
     };
 
-    const handleTestEmail = async () => {
-        const email = prompt("Enter email address to send test email to:");
-        if (!email) return;
 
-        try {
-            toast.info("Sending test email...");
-            const res = await api.post('/teams/admin/test-email', { email });
-            toast.success(res.data.message);
-            alert("Success: " + res.data.message);
-        } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || "Email test failed");
-            alert("Error: " + (err.response?.data?.message || err.message));
-        }
-    };
 
     const handleUpdateLimit = async () => {
         try {
@@ -353,9 +339,7 @@ const Dashboard = () => {
                 </div>
                 <div className="space-x-4 flex items-center flex-wrap gap-2">
                     <div className="flex gap-2 flex-wrap">
-                        <button onClick={handleTestEmail} className="px-4 py-2 rounded-xl font-bold bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-200 transition-colors text-sm flex items-center gap-1">
-                            📧 Test Email
-                        </button>
+
                         <button onClick={() => setIsSettingsOpen(true)} className="px-4 py-2 rounded-xl font-bold bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-200 transition-colors text-sm flex items-center gap-1">
                             ⚙️ Settings
                         </button>

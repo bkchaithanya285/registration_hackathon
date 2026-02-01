@@ -87,84 +87,63 @@ const Export = () => {
                 </h2>
                 <p className="text-primary/60 mb-12">Download registration data in CSV format</p>
 
-                <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
-                    {exportOptions.map((option, idx) => (
-                        <motion.div
-                            key={option.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 * (idx + 1) }}
+                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    {/* Option 1: Whole Data */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="glass-card p-10 flex flex-col items-center text-center hover:bg-white/5 transition-colors border border-white/20"
+                    >
+                        <div className="bg-primary/20 p-6 rounded-full mb-6">
+                            <span className="text-4xl">📋</span>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3 text-white">All Details</h3>
+                        <p className="text-slate-400 mb-8">Export complete details of all teams and members including payments.</p>
+
+                        <motion.button
+                            onClick={() => handleExport('all-details')}
+                            disabled={loading === 'all-details'}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn-primary w-full py-3 text-lg flex items-center justify-center gap-2"
                         >
-                            <div className={`glass-card p-8 h-full flex flex-col bg-gradient-to-br ${option.color} bg-opacity-10`}>
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-bold mb-2 text-slate-800">{option.title}</h3>
-                                    <p className="text-slate-600 text-sm mb-4 font-semibold">{option.description}</p>
-                                    <div className="bg-white/40 p-4 rounded-lg mb-6 border border-white/50 shadow-sm">
-                                        <p className="text-slate-700 text-xs font-medium">{option.details}</p>
-                                    </div>
-                                </div>
+                            {loading === 'all-details' ? (
+                                <span className="loader"></span>
+                            ) : (
+                                <>Download CSV</>
+                            )}
+                        </motion.button>
+                    </motion.div>
 
-                                <motion.button
-                                    onClick={() => handleExport(option.id)}
-                                    disabled={loading === option.id}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="btn-primary w-full flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading === option.id ? (
-                                        <>
-                                            <motion.span
-                                                animate={{ rotate: 360 }}
-                                                transition={{ duration: 1, repeat: Infinity }}
-                                                className="inline-block border-2 border-white border-t-transparent rounded-full h-4 w-4"
-                                            />
-                                            <span>Exporting...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                            </svg>
-                                            <span>Download CSV</span>
-                                        </>
-                                    )}
-                                </motion.button>
-                            </div>
-                        </motion.div>
-                    ))}
+                    {/* Option 2: Team ID, Name, QR */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="glass-card p-10 flex flex-col items-center text-center hover:bg-white/5 transition-colors border border-white/20"
+                    >
+                        <div className="bg-accent/20 p-6 rounded-full mb-6">
+                            <span className="text-4xl">📸</span>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3 text-white">Screenshots Details</h3>
+                        <p className="text-slate-400 mb-8">Export a simplified list containing only Team ID, Name, and Payment Screenshots.</p>
+
+                        <motion.button
+                            onClick={() => handleExport('screenshot')}
+                            disabled={loading === 'screenshot'}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="bg-accent hover:bg-accent-dark text-black font-bold py-3 px-6 rounded-lg w-full text-lg flex items-center justify-center gap-2 transition-all"
+                        >
+                            {loading === 'screenshot' ? (
+                                <span className="loader"></span>
+                            ) : (
+                                <>Download CSV</>
+                            )}
+                        </motion.button>
+                    </motion.div>
                 </div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="card-secondary p-8 mt-12"
-                >
-                    <h3 className="text-2xl font-bold mb-4 text-secondary">📥 Export Information</h3>
-                    <div className="space-y-4">
-                        <div className="flex gap-4">
-                            <span className="text-secondary text-2xl">📊</span>
-                            <div className='p-2'>
-                                <p className="font-semibold text-slate-800">Summary Export</p>
-                                <p className="text-slate-600 text-sm">Quick reference for team registration status and payment information.</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <span className="text-secondary text-2xl">📋</span>
-                            <div>
-                                <p className="font-semibold text-slate-800">Complete Details</p>
-                                <p className="text-slate-600 text-sm">Comprehensive data including all participant details (email, phone, department, year of study, accommodation status, etc.)</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <span className="text-secondary text-2xl">📸</span>
-                            <div>
-                                <p className="font-semibold text-slate-800">Payment Screenshots</p>
-                                <p className="text-slate-600 text-sm">Payment proof references and screenshot URLs for verification purposes.</p>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
             </motion.div>
         </div>
     );

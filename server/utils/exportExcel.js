@@ -49,8 +49,8 @@ const exportAllDetails = async (teams) => {
         });
 
         const fields = [
-            'Team Code', 'Team Name', 'Role', 'Name', 'Register Number', 
-            'Mobile', 'Email', 'Year', 'Department', 'Accommodation', 
+            'Team Code', 'Team Name', 'Role', 'Name', 'Register Number',
+            'Mobile', 'Email', 'Year', 'Department', 'Accommodation',
             'Hostel Name', 'Room Number', 'Registration Date', 'Payment Status'
         ];
 
@@ -72,15 +72,13 @@ const exportScreenshotDetails = async (teams) => {
 
         teams.forEach(team => {
             rows.push({
-                'Team Code': team.teamId,
+                'Team ID': team.teamId,
                 'Team Name': team.teamName,
-                'Screenshot Link': team.payment.screenshotUrl || 'Not Uploaded',
-                'Payment Status': team.payment.status,
-                'Registration Date': new Date(team.createdAt).toLocaleDateString()
+                'Team QR': team.payment.screenshotUrl || 'Not Uploaded'
             });
         });
 
-        const fields = ['Team Code', 'Team Name', 'Screenshot Link', 'Payment Status', 'Registration Date'];
+        const fields = ['Team ID', 'Team Name', 'Team QR'];
 
         const json2csvParser = new Parser({ fields });
         return json2csvParser.parse(rows);
