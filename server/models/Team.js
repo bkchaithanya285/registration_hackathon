@@ -31,4 +31,8 @@ const teamSchema = new mongoose.Schema({
   isAdminOverride: { type: Boolean, default: false },
 }, { timestamps: true });
 
+// Add indexes for frequently queried fields
+teamSchema.index({ teamName: 1 });
+teamSchema.index({ 'payment.utr': 1 });
+
 module.exports = mongoose.model('Team', teamSchema);

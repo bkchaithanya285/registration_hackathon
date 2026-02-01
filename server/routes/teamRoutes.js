@@ -49,9 +49,7 @@ router.put('/admin/verify', authMiddleware, teamController.updatePaymentStatus);
 router.put('/admin/limit', authMiddleware, teamController.updateLimit);
 router.delete('/admin/team/:teamId', authMiddleware, teamController.deleteTeam);
 router.delete('/admin/clear-all', authMiddleware, teamController.deleteAllTeams);
-// Changed to POST to support ID filtering
-router.post('/admin/export', authMiddleware, teamController.exportData);
-router.post('/admin/export/custom', authMiddleware, teamController.customExport);
+// Export Routes
 router.get('/admin/export/all-details', authMiddleware, teamController.exportAllDetails);
 router.get('/admin/export/screenshot-details', authMiddleware, teamController.exportScreenshotDetails);
 

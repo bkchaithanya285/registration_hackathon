@@ -42,30 +42,28 @@ exports.checkTeamName = async (req, res) => {
 // Participant Registration
 exports.registerTeam = async (req, res) => {
     try {
-        const count = await Team.countDocuments();
-        const limit = await getLimit();
-        if (count >= limit) {
-            return res.status(400).json({ message: 'Registration closed. Please contact CSI organizers.' });
-        }
-
         if (!req.file) {
             return res.status(400).json({ message: 'Payment screenshot is required' });
         }
 
         const { teamName, leader, members, utr } = req.body;
 
-        // Check if team name already exists (case-insensitive)
-        const existingTeam = await Team.findOne({
-            teamName: { $regex: `^${teamName}$`, $options: 'i' }
-        });
+        // Parallelize initial checks for performance
+        const [count, limit, existingTeam, existingUTR] = await Promise.all([
+            Team.countDocuments(),
+            getLimit(),
+            Team.findOne({ teamName: { $regex: `^${teamName}$`, $options: 'i' } }),
+            Team.findOne({ 'payment.utr': utr })
+        ]);
+
+        if (count >= limit) {
+            return res.status(400).json({ message: 'Registration closed. Please contact CSI organizers.' });
+        }
+
         if (existingTeam) {
             return res.status(400).json({ message: 'Team name already exists. Please choose a different team name.' });
         }
 
-        // Check if UTR already exists
-        const existingUTR = await Team.findOne({
-            'payment.utr': utr
-        });
         if (existingUTR) {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
         }
@@ -180,7 +178,8 @@ exports.adminCreateTeam = async (req, res) => {
 
         // Rename the screenshot file with format: CREATOR-001-NOVA
         const timestamp = req.uploadTimestamp || Date.now();
-        const oldPublicId = `createx_hackathon/screenshots/${teamName}_${timestamp}`;
+        // Use actual filename from Cloudinary response to ensure we match even if name was sanitized
+        const oldPublicId = req.file.filename;
         const newPublicId = `createx_hackathon/screenshots/${teamId}-${teamName}`;
 
         let screenshotUrl = req.file.path;
@@ -430,82 +429,6 @@ exports.deleteAllTeams = async (req, res) => {
     }
 };
 
-// Export to CSV (Supports Filtered IDs & Gender)
-exports.exportData = async (req, res) => {
-    try {
-        const { ids, filters } = req.body; // Expect array of teamIds and filters object
-        let teams;
-
-        if (ids && ids.length > 0) {
-            teams = await Team.find({ teamId: { $in: ids } });
-        } else {
-            teams = await Team.find();
-        }
-
-        const rows = [];
-        const targetGender = filters?.gender || 'All'; // 'All', 'Male', 'Female'
-
-        teams.forEach(team => {
-            // Leader row
-            const showLeader = targetGender === 'All' || (team.leader.gender === targetGender);
-
-            if (showLeader) {
-                rows.push({
-                    TeamID: team.teamId,
-                    TeamName: team.teamName,
-                    Role: 'Lead',
-                    Name: team.leader.name,
-                    Gender: team.leader.gender || '-',
-                    RegisterNumber: team.leader.registerNumber,
-                    Mobile: team.leader.mobileNumber,
-                    YearOfStudy: team.leader.yearOfStudy || '-',
-                    Department: team.leader.department || '-',
-                    Type: team.leader.isHosteler ? 'Hosteler' : 'Day Scholar',
-                    Hostel: team.leader.hostelName || '-',
-                    Room: team.leader.roomNumber || '-',
-                    ScreenshotLink: team.payment.screenshotUrl,
-                    PaymentStatus: team.payment.status
-                });
-            }
-
-            // Members rows
-            team.members.forEach((member, index) => {
-                const showMember = targetGender === 'All' || (member.gender === targetGender);
-
-                if (showMember) {
-                    rows.push({
-                        TeamID: team.teamId,
-                        TeamName: team.teamName,
-                        Role: `Member ${index + 2}`,
-                        Name: member.name,
-                        Gender: member.gender || '-',
-                        RegisterNumber: member.registerNumber,
-                        Mobile: member.mobileNumber,
-                        YearOfStudy: member.yearOfStudy || '-',
-                        Department: member.department || '-',
-                        Type: member.isHosteler ? 'Hosteler' : 'Day Scholar',
-                        Hostel: member.hostelName || '-',
-                        Room: member.roomNumber || '-',
-                        ScreenshotLink: team.payment.screenshotUrl,
-                        PaymentStatus: team.payment.status
-                    });
-                }
-            });
-        });
-
-        const fields = ['TeamID', 'TeamName', 'Role', 'Name', 'Gender', 'RegisterNumber', 'Mobile', 'YearOfStudy', 'Department', 'Type', 'Hostel', 'Room', 'ScreenshotLink', 'PaymentStatus'];
-        const json2csvParser = new Parser({ fields });
-        const csv = json2csvParser.parse(rows);
-
-        res.header('Content-Type', 'text/csv');
-        res.attachment('createx_registrations.csv');
-        res.send(csv);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
 // Export All Details (Full Database Dump)
 exports.exportAllDetails = async (req, res) => {
     try {
@@ -590,6 +513,7 @@ exports.exportScreenshotDetails = async (req, res) => {
         res.status(500).json({ message: 'Export failed' });
     }
 };
+
 // Get Payment Settings (QR Code & UPI ID)
 exports.getPaymentSettings = async (req, res) => {
     try {
@@ -656,94 +580,6 @@ exports.updatePaymentSettings = async (req, res) => {
     } catch (err) {
         console.error('Error in updatePaymentSettings:', err);
         res.status(500).json({ message: 'Server error: ' + err.message });
-    }
-};
-
-// Export with Customized Columns
-exports.customExport = async (req, res) => {
-    try {
-        const { ids, filters, selectedColumns } = req.body;
-        let teams;
-
-        if (ids && ids.length > 0) {
-            teams = await Team.find({ teamId: { $in: ids } });
-        } else {
-            teams = await Team.find();
-        }
-
-        const rows = [];
-        const targetGender = filters?.gender || 'All';
-        const targetType = filters?.type || 'All';
-        const targetYear = filters?.year || 'All';
-        const targetStatus = filters?.status || 'All';
-
-        teams.forEach(team => {
-            // Leader row
-            const leaderGenderMatch = targetGender === 'All' || (team.leader.gender === targetGender);
-            const leaderTypeMatch = targetType === 'All' || (team.leader.isHosteler ? 'Hosteler' : 'Day Scholar') === targetType;
-            const leaderYearMatch = targetYear === 'All' || (team.leader.yearOfStudy === targetYear);
-            const statusMatch = targetStatus === 'All' || (team.payment.status === targetStatus);
-
-            if (leaderGenderMatch && leaderTypeMatch && leaderYearMatch && statusMatch) {
-                const row = {};
-
-                if (selectedColumns?.teamId) row['Team ID'] = team.teamId;
-                if (selectedColumns?.teamName) row['Team Name'] = team.teamName;
-                if (selectedColumns?.leadName) row['Lead Name'] = team.leader.name;
-                if (selectedColumns?.leadRegNo) row['Lead Reg No'] = team.leader.registerNumber;
-                if (selectedColumns?.leadPhone) row['Lead Phone'] = team.leader.mobileNumber;
-                if (selectedColumns?.leadEmail) row['Lead Email'] = team.leader.email || '-';
-                if (selectedColumns?.gender) row['Gender'] = team.leader.gender || '-';
-                if (selectedColumns?.year) row['Year'] = team.leader.yearOfStudy || '-';
-                if (selectedColumns?.department) row['Department'] = team.leader.department || '-';
-                if (selectedColumns?.accommodation) row['Accommodation'] = team.leader.isHosteler ? 'Hosteler' : 'Day Scholar';
-                if (selectedColumns?.hostel) row['Hostel'] = team.leader.hostelName || '-';
-                if (selectedColumns?.room) row['Room'] = team.leader.roomNumber || '-';
-                if (selectedColumns?.paymentStatus) row['Payment Status'] = team.payment.status;
-                if (selectedColumns?.screenshot) row['Screenshot'] = team.payment.screenshotUrl;
-
-                rows.push(row);
-            }
-
-            // Members rows
-            team.members.forEach((member, index) => {
-                const memberGenderMatch = targetGender === 'All' || (member.gender === targetGender);
-                const memberTypeMatch = targetType === 'All' || (member.isHosteler ? 'Hosteler' : 'Day Scholar') === targetType;
-                const memberYearMatch = targetYear === 'All' || (member.yearOfStudy === targetYear);
-
-                if (memberGenderMatch && memberTypeMatch && memberYearMatch && statusMatch) {
-                    const row = {};
-
-                    if (selectedColumns?.teamId) row['Team ID'] = team.teamId;
-                    if (selectedColumns?.teamName) row['Team Name'] = team.teamName;
-                    if (selectedColumns?.memberName) row['Member Name'] = member.name;
-                    if (selectedColumns?.memberRegNo) row['Member Reg No'] = member.registerNumber;
-                    if (selectedColumns?.memberPhone) row['Member Phone'] = member.mobileNumber;
-                    if (selectedColumns?.memberEmail) row['Member Email'] = member.email || '-';
-                    if (selectedColumns?.gender) row['Gender'] = member.gender || '-';
-                    if (selectedColumns?.year) row['Year'] = member.yearOfStudy || '-';
-                    if (selectedColumns?.department) row['Department'] = member.department || '-';
-                    if (selectedColumns?.accommodation) row['Accommodation'] = member.isHosteler ? 'Hosteler' : 'Day Scholar';
-                    if (selectedColumns?.hostel) row['Hostel'] = member.hostelName || '-';
-                    if (selectedColumns?.room) row['Room'] = member.roomNumber || '-';
-                    if (selectedColumns?.paymentStatus) row['Payment Status'] = team.payment.status;
-                    if (selectedColumns?.screenshot) row['Screenshot'] = team.payment.screenshotUrl;
-
-                    rows.push(row);
-                }
-            });
-        });
-
-        const fields = Object.keys(rows[0] || {});
-        const json2csvParser = new Parser({ fields });
-        const csv = json2csvParser.parse(rows);
-
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`createx_custom_export_${new Date().toISOString().split('T')[0]}.csv`);
-        res.send(csv);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Export failed' });
     }
 };
 
