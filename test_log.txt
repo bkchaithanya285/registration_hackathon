@@ -1,0 +1,14 @@
+﻿Starting Concurrency Test...
+Sending 5 requests simultaneously...
+Req 0: 500
+Error Body: {"message":"Server error","status":500}
+Req 1: 500
+Error Body: {"message":"Server error","status":500}
+Req 2: 500
+Error Body: {"message":"Server error","status":500}
+Req 3: 500
+Error Body: {"message":"Server error","status":500}
+Req 4: 500
+Error Body: {"message":"Server error","status":500}
+
+Test Complete. Success: 0, Fail: 0

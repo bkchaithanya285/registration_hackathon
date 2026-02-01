@@ -59,36 +59,6 @@ router.put('/admin/settings/payment', authMiddleware, handleUploadError(uploadQR
 
 // Resend payment verification email
 router.post('/admin/resend-email/:teamId', authMiddleware, teamController.resendPaymentEmail);
-// Explicit email test
-router.post('/admin/test-email', authMiddleware, teamController.testEmail);
 
-// Test endpoint for debugging
-router.post('/admin/test-settings', authMiddleware, async (req, res) => {
-    console.log('=== TEST SETTINGS ENDPOINT ===');
-    const Setting = require('../models/Setting');
-    try {
-        // Create a test setting
-        const result = await Setting.findOneAndUpdate(
-            { key: 'testKey' },
-            { value: 'testValue' },
-            { upsert: true, new: true }
-        );
-        console.log('Test setting created:', result);
-        res.json({ message: 'Test successful', setting: result });
-    } catch (err) {
-        console.error('Test error:', err);
-        res.status(500).json({ message: 'Test failed: ' + err.message });
-    }
-});
-router.post('/admin/seed', authMiddleware, teamController.seedData);
-
-// Test endpoint
-router.get('/admin/test', authMiddleware, (req, res) => {
-    res.json({
-        message: 'Auth test passed',
-        admin: req.admin,
-        timestamp: new Date()
-    });
-});
 
 module.exports = router;
