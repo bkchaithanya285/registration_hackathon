@@ -79,7 +79,7 @@ exports.createDraft = async (req, res) => {
             return res.status(400).json({ message: 'Team name already exists. Please choose a different team name.' });
         }
 
-        const teamId = await generateTeamId();
+        const teamId = 'DRAFT-' + Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 
         const leaderData = typeof leader === 'string' ? JSON.parse(leader) : leader;
         const membersData = typeof members === 'string' ? JSON.parse(members) : members;
@@ -129,7 +129,11 @@ exports.registerTeam = async (req, res) => {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
         }
 
-        // We temporarily set this while the background upload finishes
+        // Generate the real sequential ID only now (post-payment config)
+        const realTeamId = await generateTeamId();
+
+        // Update the drafted team with final data and the real ID
+        team.teamId = realTeamId;
         team.payment.utr = utr;
         team.payment.screenshotUrl = 'UPLOADING';
         team.payment.status = 'Pending';
@@ -138,7 +142,7 @@ exports.registerTeam = async (req, res) => {
         await team.save();
 
         // 1. Send Immediate Response to Client instantly so they don't wait for Cloudinary
-        res.status(201).json({ message: 'Registration successful', teamId });
+        res.status(201).json({ message: 'Registration successful', teamId: realTeamId });
 
         // === START BACKGROUND TASKS ===
 
@@ -146,7 +150,7 @@ exports.registerTeam = async (req, res) => {
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
                 const timestamp = Date.now();
-                const newPublicId = `${teamName}_${timestamp}`;
+                const newPublicId = `${realTeamId}-${teamName}`;
 
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
@@ -156,13 +160,13 @@ exports.registerTeam = async (req, res) => {
                     },
                     async (error, result) => {
                         if (error) {
-                            console.error(`Background upload failed for ${teamId}:`, error);
+                            console.error(`Background upload failed for ${realTeamId}:`, error);
                             return reject(error);
                         }
 
                         if (result && result.secure_url) {
-                            await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
-                            console.log(`Background upload successful for ${teamId}, updated URL.`);
+                            await Team.updateOne({ teamId: realTeamId }, { 'payment.screenshotUrl': result.secure_url });
+                            console.log(`Background upload successful for ${realTeamId}, updated URL.`);
                             resolve(result);
                         }
                     }
@@ -185,7 +189,7 @@ exports.registerTeam = async (req, res) => {
 
         if (leadEmail) {
             // Send email asynchronously
-            sendRegistrationEmail(teamId, teamName, leadEmail, leadName, membersData)
+            sendRegistrationEmail(realTeamId, teamName, leadEmail, leadName, membersData)
                 .then(result => {
                     if (result.success) console.log(`Background email sent to ${leadEmail}`);
                     else console.error(`Background email failed for ${leadEmail}:`, result.error);
