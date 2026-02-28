@@ -22,19 +22,13 @@ const generateTeamIdMiddleware = (req, res, next) => {
     next();
 };
 
-// Storage for payment screenshots
-const screenshotStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: async (req, file) => {
-        const teamName = req.body?.teamName || 'unknown';
-        const timestamp = req.uploadTimestamp || Date.now();
+// Storage for payment screenshots (Memory Storage for background upload)
+const memoryStorage = multer.memoryStorage();
 
-        return {
-            folder: 'createx_hackathon/screenshots',
-            allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
-            resource_type: 'auto',
-            public_id: `${teamName}_${timestamp}`
-        };
+const uploadScreenshot = multer({
+    storage: memoryStorage,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
     }
 });
 
@@ -48,13 +42,6 @@ const qrCodeStorage = new CloudinaryStorage({
             resource_type: 'auto',
             public_id: `qr_${Date.now()}`
         };
-    }
-});
-
-const uploadScreenshot = multer({
-    storage: screenshotStorage,
-    limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
     }
 });
 

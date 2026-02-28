@@ -1,4 +1,5 @@
 const Team = require('../models/Team');
+const Counter = require('../models/Counter');
 const generateTeamId = require('../utils/generateId');
 const { Parser } = require('json2csv');
 const Setting = require('../models/Setting');
@@ -128,49 +129,58 @@ exports.registerTeam = async (req, res) => {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
         }
 
-        // We already have the draft team saved, just update payment info and status
-        const originalScreenshotUrl = req.file.path;
-
+        // We temporarily set this while the background upload finishes
         team.payment.utr = utr;
-        team.payment.screenshotUrl = originalScreenshotUrl;
+        team.payment.screenshotUrl = 'UPLOADING';
         team.payment.status = 'Pending';
+        const teamName = team.teamName;
 
         await team.save();
 
-        // 1. Send Immediate Response to Client
+        // 1. Send Immediate Response to Client instantly so they don't wait for Cloudinary
         res.status(201).json({ message: 'Registration successful', teamId });
 
         // === START BACKGROUND TASKS ===
 
-        // 2. Background: Rename Screenshot on Cloudinary
-        const timestamp = req.uploadTimestamp || Date.now();
+        // 2. Background: Upload Screenshot Buffer to Cloudinary
+        const uploadScreenshotToCloudinary = () => {
+            return new Promise((resolve, reject) => {
+                const timestamp = Date.now();
+                const newPublicId = `${teamName}_${timestamp}`;
 
-        // CRITICAL FIX: Use the actual filename (public_id) from the upload result
-        const oldPublicId = req.file.filename;
-        const newPublicId = `createx_hackathon/screenshots/${teamId}-${teamName}`;
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'createx_hackathon/screenshots',
+                        public_id: newPublicId,
+                        resource_type: 'auto'
+                    },
+                    async (error, result) => {
+                        if (error) {
+                            console.error(`Background upload failed for ${teamId}:`, error);
+                            return reject(error);
+                        }
 
-        console.log(`[DEBUG] Rename Logic: File=${oldPublicId} -> ${newPublicId}`);
+                        if (result && result.secure_url) {
+                            await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
+                            console.log(`Background upload successful for ${teamId}, updated URL.`);
+                            resolve(result);
+                        }
+                    }
+                );
 
-        // We don't await this, it runs in background
-        cloudinary.uploader.rename(oldPublicId, newPublicId)
-            .then(async (result) => {
-                // Return secure_url from result
-                if (result && result.secure_url) {
-                    await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
-                    console.log(`Background rename successful for ${teamId}, updated URL.`);
-                } else {
-                    console.error(`Rename succeeded but no secure_url returned for ${teamId}`);
-                }
-            })
-            .catch(err => {
-                console.error(`Background rename failed for ${teamId}:`, err);
-                // If rename fails, the original URL (pointing to oldPublicId) is still valid, so we do nothing.
+                // Write the buffer to the stream
+                const streamifier = require('streamifier');
+                streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
             });
+        };
+
+        // Fire and forget upload
+        uploadScreenshotToCloudinary().catch(err => console.error('Cloudinary stream err', err));
+
 
         // 3. Background: Send Registration Email
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
-        const teamName = team.teamName;
         const membersData = team.members;
 
         if (leadEmail) {
@@ -220,26 +230,7 @@ exports.adminCreateTeam = async (req, res) => {
 
         const teamId = await generateTeamId();
 
-        // Rename the screenshot file with format: CREATOR-001-NOVA
-        const timestamp = req.uploadTimestamp || Date.now();
-        // Use actual filename from Cloudinary response to ensure we match even if name was sanitized
-        const oldPublicId = req.file.filename;
-        const newPublicId = `createx_hackathon/screenshots/${teamId}-${teamName}`;
-
-        let screenshotUrl = req.file.path;
-
-        try {
-            await cloudinary.uploader.rename(oldPublicId, newPublicId);
-            // Update the URL with the new public_id
-            screenshotUrl = screenshotUrl.replace(
-                `${teamName}_${timestamp}`,
-                `${teamId}-${teamName}`
-            );
-        } catch (renameErr) {
-            console.error('Failed to rename screenshot:', renameErr);
-            // Continue with original URL if rename fails
-        }
-
+        // 1. Save team with Temporary Screenshot URL
         const newTeam = new Team({
             teamId,
             teamName,
@@ -247,14 +238,51 @@ exports.adminCreateTeam = async (req, res) => {
             members: membersData || [],
             payment: {
                 utr,
-                screenshotUrl: screenshotUrl,
-                status: 'Verified' // Admin added usually means verified, but let's keep it Verified or Pending? Prompt says "Admin can manually add". let's set Verified for convenience or allow param.
+                screenshotUrl: 'UPLOADING',
+                status: 'Verified' // Admin added usually means verified
             },
             isAdminOverride: true
         });
 
         await newTeam.save();
+
+        // 2. Respond immediately
         res.status(201).json({ message: 'Team added by Admin', teamId });
+
+        // === START BACKGROUND TASKS ===
+        const uploadScreenshotToCloudinary = () => {
+            return new Promise((resolve, reject) => {
+                const timestamp = Date.now();
+                const newPublicId = `${teamId}-${teamName}`;
+
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'createx_hackathon/screenshots',
+                        public_id: newPublicId,
+                        resource_type: 'auto'
+                    },
+                    async (error, result) => {
+                        if (error) {
+                            console.error(`Background upload failed for Admin team ${teamId}:`, error);
+                            return reject(error);
+                        }
+
+                        if (result && result.secure_url) {
+                            await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
+                            console.log(`Background upload successful for Admin team ${teamId}, updated URL.`);
+                            resolve(result);
+                        }
+                    }
+                );
+
+                const streamifier = require('streamifier');
+                streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+            });
+        };
+
+        // Fire and forget upload
+        uploadScreenshotToCloudinary().catch(err => console.error('Cloudinary stream err', err));
+
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -480,9 +508,11 @@ exports.deleteTeam = async (req, res) => {
 exports.deleteAllTeams = async (req, res) => {
     try {
         await Team.deleteMany({});
+        // Reset the counter so team IDs start from 1 again
+        await Counter.deleteMany({});
         // Reset limit or other settings if needed, but for now just teams.
         // We might want to keep settings, so just deleting Team collection content.
-        res.json({ message: 'All teams deleted successfully' });
+        res.json({ message: 'All teams deleted successfully and team numbering reset to 1' });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }

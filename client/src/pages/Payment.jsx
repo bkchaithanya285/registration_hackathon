@@ -19,23 +19,7 @@ const Payment = () => {
         }
     }, [state, navigate]);
 
-    // Simple 10-minute countdown for the payment slot reservation
-    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            toast.error('Registration session expired.');
-            navigate('/');
-            return;
-        }
-        const timerId = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-        return () => clearInterval(timerId);
-    }, [timeLeft, navigate]);
-
-    const formatTime = (seconds) => {
-        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    };
+    // Timer logic removed as per user request
 
     // Fetch payment settings (QR code and UPI ID) from admin
     useEffect(() => {
@@ -102,11 +86,8 @@ const Payment = () => {
                 >
                     <div className="flex justify-between items-center mb-2">
                         <p className="text-secondary text-xs font-bold uppercase tracking-widest">⚠️ Important</p>
-                        <div className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
-                            ⏳ Session Expires in: {formatTime(timeLeft)}
-                        </div>
                     </div>
-                    <p className="text-secondary/80 text-sm">No changes allowed after payment. Your slot is temporarily reserved. Complete payment before the timer runs out!</p>
+                    <p className="text-secondary/80 text-sm">No changes allowed after payment. Your slot is temporarily reserved. Please complete your payment.</p>
                 </motion.div>
 
                 <motion.div
