@@ -23,7 +23,7 @@ const teamSchema = new mongoose.Schema({
     amount: { type: Number, default: 1750 },
     utr: { type: String, required: true },
     screenshotUrl: { type: String, required: true },
-    status: { type: String, enum: ['Pending', 'Verified', 'Rejected'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Verified', 'Rejected', 'Draft'], default: 'Pending' },
     rejectionReason: { type: String },
     emailSent: { type: Boolean, default: false },
     emailSentAt: { type: Date }

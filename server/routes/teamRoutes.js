@@ -39,6 +39,7 @@ router.get('/payment-settings', async (req, res) => {
     }
 });
 router.get('/check-name', teamController.checkTeamName);
+router.post('/reserve', teamController.createDraft);
 router.post('/register', generateTeamIdMiddleware, uploadScreenshot.single('screenshot'), teamController.registerTeam);
 router.get('/status', teamController.checkStatus);
 
@@ -47,6 +48,7 @@ router.post('/admin/register', authMiddleware, generateTeamIdMiddleware, uploadS
 router.get('/admin/teams', authMiddleware, teamController.getAllTeams);
 router.put('/admin/verify', authMiddleware, teamController.updatePaymentStatus);
 router.put('/admin/limit', authMiddleware, teamController.updateLimit);
+router.put('/admin/toggleRegistration', authMiddleware, teamController.toggleRegistration);
 router.delete('/admin/team/:teamId', authMiddleware, teamController.deleteTeam);
 router.delete('/admin/clear-all', authMiddleware, teamController.deleteAllTeams);
 // Export Routes

@@ -13,10 +13,25 @@ const getLimit = async () => {
 // Get Public Status
 exports.getStats = async (req, res) => {
     try {
-        const verifiedTeams = await Team.countDocuments({ 'payment.status': 'Verified' });
+        // Clean up expired drafts before calculating stats
+        const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+        await Team.deleteMany({ 'payment.status': 'Draft', createdAt: { $lt: tenMinsAgo } });
+
+        const totalTeams = await Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Draft'] } }); // Count actual intended teams
         const limit = await getLimit();
-        const isRegistrationOpen = verifiedTeams < limit;
-        res.json({ totalTeams: verifiedTeams, isRegistrationOpen, limit });
+        const stoppedSetting = await Setting.findOne({ key: 'registrationStopped' });
+
+        const isStopped = stoppedSetting && stoppedSetting.value === 'true' ? true : false;
+        const limitReached = totalTeams >= limit;
+        const isRegistrationOpen = !limitReached && !isStopped;
+
+        res.json({
+            totalTeams,
+            limit,
+            isRegistrationOpen,
+            isStopped,
+            limitReached
+        });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -38,47 +53,35 @@ exports.checkTeamName = async (req, res) => {
     }
 };
 
-// Participant Registration
-exports.registerTeam = async (req, res) => {
+exports.createDraft = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'Payment screenshot is required' });
-        }
+        const { teamName, leader, members } = req.body;
 
-        const { teamName, leader, members, utr } = req.body;
-
-        // Parallelize initial checks for performance
-        const [count, limit, existingTeam, existingUTR] = await Promise.all([
-            Team.countDocuments(),
+        const [count, limit, stoppedSetting, existingTeam] = await Promise.all([
+            Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Draft'] } }),
             getLimit(),
-            Team.findOne({ teamName: { $regex: `^${teamName}$`, $options: 'i' } }),
-            Team.findOne({ 'payment.utr': utr })
+            Setting.findOne({ key: 'registrationStopped' }),
+            Team.findOne({ teamName: { $regex: `^${teamName}$`, $options: 'i' } })
         ]);
 
+        const isStopped = stoppedSetting && stoppedSetting.value === 'true';
+
+        if (isStopped) {
+            return res.status(400).json({ message: 'Registration stopped by the admin contact admin for information' });
+        }
+
         if (count >= limit) {
-            return res.status(400).json({ message: 'Registration closed. Please contact CSI organizers.' });
+            return res.status(400).json({ message: 'Registrations closed due to completing of slots' });
         }
 
         if (existingTeam) {
             return res.status(400).json({ message: 'Team name already exists. Please choose a different team name.' });
         }
 
-        if (existingUTR) {
-            return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
-        }
-
-        // Parse JSON strings if they come as form-data strings
-        const leaderData = typeof leader === 'string' ? JSON.parse(leader) : leader;
-        const membersData = typeof members === 'string' ? JSON.parse(members) : members;
-
-        if (!membersData || membersData.length !== 4) {
-            return res.status(400).json({ message: 'Team must have exactly 5 participants (1 Lead + 4 Members)' });
-        }
-
         const teamId = await generateTeamId();
 
-        // Use original upload path initially for speed
-        const originalScreenshotUrl = req.file.path;
+        const leaderData = typeof leader === 'string' ? JSON.parse(leader) : leader;
+        const membersData = typeof members === 'string' ? JSON.parse(members) : members;
 
         const newTeam = new Team({
             teamId,
@@ -86,13 +89,53 @@ exports.registerTeam = async (req, res) => {
             leader: leaderData,
             members: membersData || [],
             payment: {
-                utr,
-                screenshotUrl: originalScreenshotUrl,
-                status: 'Pending'
+                utr: 'DRAFT',
+                screenshotUrl: 'DRAFT',
+                status: 'Draft'
             }
         });
 
         await newTeam.save();
+
+        res.status(201).json({ message: 'Draft created, reserved slot for 10 minutes', teamId });
+    } catch (err) {
+        console.error('DRAFT ERROR:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+// Participant Registration (Finalize Draft)
+exports.registerTeam = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Payment screenshot is required' });
+        }
+
+        const { teamId, utr } = req.body;
+
+        if (!teamId) {
+            return res.status(400).json({ message: 'Team ID is missing. Please start registration from the beginning.' });
+        }
+
+        const team = await Team.findOne({ teamId });
+        if (!team || team.payment.status !== 'Draft') {
+            return res.status(400).json({ message: 'Registration session expired or invalid. Please try again.' });
+        }
+
+        const existingUTR = await Team.findOne({ 'payment.utr': utr, teamId: { $ne: teamId } });
+
+        if (existingUTR) {
+            return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
+        }
+
+        // We already have the draft team saved, just update payment info and status
+        const originalScreenshotUrl = req.file.path;
+
+        team.payment.utr = utr;
+        team.payment.screenshotUrl = originalScreenshotUrl;
+        team.payment.status = 'Pending';
+
+        await team.save();
 
         // 1. Send Immediate Response to Client
         res.status(201).json({ message: 'Registration successful', teamId });
@@ -125,8 +168,10 @@ exports.registerTeam = async (req, res) => {
             });
 
         // 3. Background: Send Registration Email
-        const leadEmail = leaderData.email;
-        const leadName = leaderData.name;
+        const leadEmail = team.leader.email;
+        const leadName = team.leader.name;
+        const teamName = team.teamName;
+        const membersData = team.members;
 
         if (leadEmail) {
             // Send email asynchronously
@@ -237,7 +282,7 @@ exports.checkStatus = async (req, res) => {
 // Admin: Get All Teams
 exports.getAllTeams = async (req, res) => {
     try {
-        const teams = await Team.find().sort({ createdAt: -1 });
+        const teams = await Team.find({ 'payment.status': { $ne: 'Draft' } }).sort({ createdAt: -1 });
         res.json(teams);
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
@@ -404,6 +449,21 @@ exports.updateLimit = async (req, res) => {
     }
 };
 
+// Admin: Toggle Registration Status
+exports.toggleRegistration = async (req, res) => {
+    const { isStopped } = req.body;
+    try {
+        await Setting.findOneAndUpdate(
+            { key: 'registrationStopped' },
+            { value: isStopped ? 'true' : 'false' },
+            { upsert: true, new: true }
+        );
+        res.json({ message: `Registration ${isStopped ? 'stopped' : 'opened'}` });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Admin: Delete Team
 exports.deleteTeam = async (req, res) => {
     const { teamId } = req.params;
@@ -431,7 +491,7 @@ exports.deleteAllTeams = async (req, res) => {
 // Export All Details (Participant-based Row Structure)
 exports.exportAllDetails = async (req, res) => {
     try {
-        const teams = await Team.find().sort({ createdAt: -1 });
+        const teams = await Team.find({ 'payment.status': { $ne: 'Draft' } }).sort({ createdAt: -1 });
         const rows = [];
 
         teams.forEach(team => {
@@ -508,7 +568,7 @@ exports.exportAllDetails = async (req, res) => {
 // Export Screenshot Details (Simplified)
 exports.exportScreenshotDetails = async (req, res) => {
     try {
-        const teams = await Team.find().select('teamId teamName payment.screenshotUrl payment.status');
+        const teams = await Team.find({ 'payment.status': { $ne: 'Draft' } }).select('teamId teamName payment.screenshotUrl payment.status');
 
         const rows = teams.map(team => ({
             'Team ID': team.teamId,

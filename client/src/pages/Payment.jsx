@@ -14,10 +14,28 @@ const Payment = () => {
     const [settingsLoading, setSettingsLoading] = useState(true);
 
     useEffect(() => {
-        if (!state?.registrationData) {
+        if (!state?.teamId) {
             navigate('/register');
         }
     }, [state, navigate]);
+
+    // Simple 10-minute countdown for the payment slot reservation
+    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            toast.error('Registration session expired.');
+            navigate('/');
+            return;
+        }
+        const timerId = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+        return () => clearInterval(timerId);
+    }, [timeLeft, navigate]);
+
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
 
     // Fetch payment settings (QR code and UPI ID) from admin
     useEffect(() => {
@@ -48,10 +66,7 @@ const Payment = () => {
         const formData = new FormData();
 
         // Append JSON data
-        const regData = state.registrationData;
-        formData.append('teamName', regData.teamName);
-        formData.append('leader', JSON.stringify(regData.leader));
-        formData.append('members', JSON.stringify(regData.members));
+        formData.append('teamId', state.teamId);
         formData.append('utr', utr);
         formData.append('screenshot', file);
 
@@ -85,8 +100,13 @@ const Payment = () => {
                     transition={{ delay: 0.1 }}
                     className="card-secondary p-4 mb-6"
                 >
-                    <p className="text-secondary text-xs font-bold uppercase tracking-widest mb-2">⚠️ Important</p>
-                    <p className="text-secondary/80 text-sm">No changes allowed after payment. Verify all details are correct before proceeding.</p>
+                    <div className="flex justify-between items-center mb-2">
+                        <p className="text-secondary text-xs font-bold uppercase tracking-widest">⚠️ Important</p>
+                        <div className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                            ⏳ Session Expires in: {formatTime(timeLeft)}
+                        </div>
+                    </div>
+                    <p className="text-secondary/80 text-sm">No changes allowed after payment. Your slot is temporarily reserved. Complete payment before the timer runs out!</p>
                 </motion.div>
 
                 <motion.div
@@ -102,9 +122,9 @@ const Payment = () => {
                                 <p className="text-sm font-semibold">Loading...</p>
                             </div>
                         ) : paymentSettings.qrCodeUrl ? (
-                            <img 
-                                src={paymentSettings.qrCodeUrl} 
-                                alt="Payment QR Code" 
+                            <img
+                                src={paymentSettings.qrCodeUrl}
+                                alt="Payment QR Code"
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -114,12 +134,24 @@ const Payment = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* UPI ID - Display if available */}
                     <p className="font-bold text-slate-800 text-lg">UPI ID</p>
                     <p className="text-primary font-mono text-sm mb-4">
                         {paymentSettings.upiId || 'example@upi'}
                     </p>
+
+                    {paymentSettings.upiId && (
+                        <div className="mb-4">
+                            <a
+                                href={`upi://pay?pa=${paymentSettings.upiId}&pn=CreateX&cu=INR`}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition-transform shadow-md"
+                            >
+                                <span>📱 Pay with UPI App</span>
+                            </a>
+                        </div>
+                    )}
+
                     <div className="border-t border-primary/20 pt-4">
                         <p className="text-gray-400 text-xs uppercase tracking-widest">Total Amount</p>
                         <p className="text-4xl font-bold text-primary">₹1750</p>
@@ -164,9 +196,9 @@ const Payment = () => {
                                             <p className="text-xs text-primary/60">Click to change screenshot</p>
                                             {/* Preview Thumbnail */}
                                             <div className="mt-3 flex justify-center">
-                                                <img 
-                                                    src={URL.createObjectURL(file)} 
-                                                    alt="Preview" 
+                                                <img
+                                                    src={URL.createObjectURL(file)}
+                                                    alt="Preview"
                                                     className="max-h-40 max-w-full rounded-lg border border-primary/30 shadow-md"
                                                 />
                                             </div>

@@ -22,18 +22,12 @@ const Review = () => {
 
     const handleConfirm = async () => {
         try {
-            const res = await api.get('/teams/stats');
-            if (res.data.isRegistrationOpen === false) {
-                alert('Registration has just closed! Limit reached.');
-                navigate('/');
-                return;
-            }
-            navigate('/payment', { state: { registrationData: data } });
+            const res = await api.post('/teams/reserve', data);
+
+            navigate('/payment', { state: { registrationData: data, teamId: res.data.teamId } });
         } catch (err) {
             console.error(err);
-            // If check fails, maybe let them proceed or allow retry? 
-            // Better to let them try to avoid blocking if just network glitch
-            navigate('/payment', { state: { registrationData: data } });
+            alert(err.response?.data?.message || 'Failed to reserve your registration slot. Please try again.');
         }
     };
 

@@ -1,8 +1,14 @@
 import { useLocation, Link } from 'react-router-dom';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 const Success = () => {
     const { state } = useLocation();
+
+    // Clear the auto-save draft upon reaching the success page
+    React.useEffect(() => {
+        localStorage.removeItem('hack_registration_draft');
+    }, []);
 
     if (!state?.teamId) {
         return (

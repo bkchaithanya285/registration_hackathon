@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [rejectReason, setRejectReason] = useState('');
     const [stats, setStats] = useState({ total: 0, pending: 0, verified: 0 });
     const [limit, setLimit] = useState(75);
+    const [isStopped, setIsStopped] = useState(false);
     const [isEditingLimit, setIsEditingLimit] = useState(false);
     const [newLimit, setNewLimit] = useState('');
     const [isResendingEmail, setIsResendingEmail] = useState(false);
@@ -49,6 +50,7 @@ const Dashboard = () => {
             const statsRes = await api.get('/teams/stats');
             setLimit(statsRes.data.limit);
             setNewLimit(statsRes.data.limit);
+            setIsStopped(statsRes.data.isStopped);
         } catch (err) {
             toast.error('Failed to fetch teams');
         }
@@ -129,6 +131,22 @@ const Dashboard = () => {
             toast.success('Limit updated successfully');
         } catch (err) {
             toast.error('Failed to update limit');
+        }
+    };
+
+    const handleToggleRegistration = async () => {
+        const confirmMsg = isStopped
+            ? "Are you sure you want to OPEN registrations again?"
+            : "Are you sure you want to STOP registrations immediately?";
+
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            await api.put('/teams/admin/toggleRegistration', { isStopped: !isStopped });
+            setIsStopped(!isStopped);
+            toast.success(`Registration successfully ${!isStopped ? 'stopped' : 'opened'}`);
+        } catch (err) {
+            toast.error('Failed to toggle registration status');
         }
     };
 
@@ -305,14 +323,21 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div onClick={() => setIsEditingLimit(true)} className="cursor-pointer hover:opacity-80 transition">
+                <div onClick={() => setIsEditingLimit(true)} className="cursor-pointer hover:opacity-80 transition relative">
                     <StatCard title="Total Teams" value={stats.total} sub={`Limit: ${limit} (Click to Edit)`} />
+                    <div className="absolute top-4 right-4 text-xs font-bold text-slate-400 bg-white/80 px-2 py-1 rounded shadow-sm">Config</div>
+                </div>
+                <div onClick={handleToggleRegistration} className="cursor-pointer hover:opacity-80 transition relative">
+                    <StatCard
+                        title="Registration Status"
+                        value={isStopped ? "STOPPED" : "OPEN"}
+                        sub={`Click to ${isStopped ? 'OPEN' : 'STOP'}`}
+                        color={isStopped ? "bg-red-100 border-red-300 text-red-700" : "bg-emerald-100 border-emerald-300 text-emerald-700"}
+                    />
                 </div>
                 <StatCard title="Verified" value={stats.verified} color="bg-green-100 border-green-300 text-green-700" />
                 <StatCard title="Pending" value={stats.pending} color="bg-amber-100 border-amber-300 text-amber-700" />
-                <StatCard title="Rejected" value={teams.length - stats.verified - stats.pending} color="bg-red-100 border-red-300 text-red-700" />
             </div>
 
             {/* Filter Buttons */}

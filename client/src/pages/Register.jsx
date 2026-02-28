@@ -11,11 +11,13 @@ const Register = () => {
     const { state } = useLocation();
     const isEditing = state?.isEditing || false;
 
+    const savedDraft = JSON.parse(localStorage.getItem('hack_registration_draft')) || {};
+
     const { register, control, handleSubmit, watch, setError, clearErrors, formState: { errors } } = useForm({
         defaultValues: {
-            teamName: state?.registrationData?.teamName || '',
-            leader: state?.registrationData?.leader || { yearOfStudy: '', department: '', email: '', teamLeadEmail: '', gender: '' },
-            members: state?.registrationData?.members || [
+            teamName: state?.registrationData?.teamName || savedDraft.teamName || '',
+            leader: state?.registrationData?.leader || savedDraft.leader || { yearOfStudy: '', department: '', email: '', teamLeadEmail: '', gender: '' },
+            members: state?.registrationData?.members || savedDraft.members || [
                 { name: '', registerNumber: '', mobileNumber: '', isHosteler: false, hostelName: '', roomNumber: '', yearOfStudy: '', department: '', gender: '' },
                 { name: '', registerNumber: '', mobileNumber: '', isHosteler: false, hostelName: '', roomNumber: '', yearOfStudy: '', department: '', gender: '' },
                 { name: '', registerNumber: '', mobileNumber: '', isHosteler: false, hostelName: '', roomNumber: '', yearOfStudy: '', department: '', gender: '' },
@@ -46,7 +48,7 @@ const Register = () => {
             .then(res => {
                 console.log('Stats fetched:', res.data);
                 clearTimeout(timeout);
-                if (!res.data.isRegistrationOpen) {
+                if (!res.data.isRegistrationOpen || res.data.isStopped) {
                     setIsClosed(true);
                 }
                 setLoading(false);
@@ -60,6 +62,15 @@ const Register = () => {
         return () => clearTimeout(timeout);
     }, []);
 
+    // Auto-save form data to localStorage
+    const formValues = watch();
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            localStorage.setItem('hack_registration_draft', JSON.stringify(formValues));
+        }, 1000); // Save after 1 second of inactivity to avoid thrashing
+        return () => clearTimeout(timeout);
+    }, [formValues]);
+
     if (loading) return <div className="text-white text-center mt-20">Loading status...</div>;
 
     if (isClosed) {
@@ -67,7 +78,9 @@ const Register = () => {
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="glass-card p-10 text-center max-w-lg border border-red-500/30">
                     <h2 className="text-3xl font-bold text-red-500 mb-4">Registration Closed</h2>
-                    <p className="text-light-subtext mb-6 font-medium">The registration limit has been reached. Please contact the organizers for more information.</p>
+                    <p className="text-light-subtext mb-6 font-medium">
+                        registrations closed due to completing of slots / stopped by admin.
+                    </p>
                     <button onClick={() => navigate('/')} className="btn-secondary">Back to Home</button>
                 </div >
             </div >
@@ -173,7 +186,20 @@ const Register = () => {
 
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-light-subtext ml-1">MOBILE NUMBER <span className="text-red-500">*</span></label>
-                                <input {...register("leader.mobileNumber", { required: "Mobile Number is required" })} className="input-field" placeholder="Mobile Number" type="text" inputMode="numeric" pattern="[0-9]*" onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }} />
+                                <input
+                                    {...register("leader.mobileNumber", {
+                                        required: "Mobile Number is required",
+                                        pattern: { value: /^[0-9]{10}$/, message: "Mobile number must be exactly 10 digits" },
+                                        minLength: { value: 10, message: "Mobile number must be exactly 10 digits" },
+                                        maxLength: { value: 10, message: "Mobile number must be exactly 10 digits" }
+                                    })}
+                                    className="input-field"
+                                    placeholder="10-digit Mobile Number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength="10"
+                                    onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }}
+                                />
                                 {errors.leader?.mobileNumber && <span className="text-red-500 text-xs">{errors.leader.mobileNumber.message}</span>}
                             </div>
 
@@ -259,7 +285,20 @@ const Register = () => {
 
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-light-subtext ml-1">MOBILE NUMBER <span className="text-red-500">*</span></label>
-                                            <input {...register(`members.${index}.mobileNumber`, { required: "Mobile Number is required" })} className="input-field" placeholder="Mobile Number" type="text" inputMode="numeric" pattern="[0-9]*" onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }} />
+                                            <input
+                                                {...register(`members.${index}.mobileNumber`, {
+                                                    required: "Mobile Number is required",
+                                                    pattern: { value: /^[0-9]{10}$/, message: "Mobile number must be exactly 10 digits" },
+                                                    minLength: { value: 10, message: "Mobile number must be exactly 10 digits" },
+                                                    maxLength: { value: 10, message: "Mobile number must be exactly 10 digits" }
+                                                })}
+                                                className="input-field"
+                                                placeholder="10-digit Mobile Number"
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength="10"
+                                                onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); }}
+                                            />
                                             {errors.members?.[index]?.mobileNumber && <span className="text-red-500 text-xs">{errors.members[index].mobileNumber.message}</span>}
                                         </div>
 

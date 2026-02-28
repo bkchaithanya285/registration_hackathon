@@ -45,11 +45,8 @@ const Landing = () => {
                         Launch Edition
                     </p>
 
-                    <p className="text-sm md:text-base text-slate-500 font-bold uppercase tracking-widest mb-2">
-                        The Biggest Collaboration of KARE
-                    </p>
                     <p className="text-xl md:text-3xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
-                        CSI × OWASP × CYBERNERDS
+                        CSI KARE
                     </p>
 
 
@@ -69,6 +66,15 @@ const Landing = () => {
                         <h2 className="text-2xl font-bold mb-4 text-primary">Registration Status</h2>
                         {loading ? (
                             <p className="text-gray-400 animate-pulse">Checking status...</p>
+                        ) : stats.isStopped ? (
+                            <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                            >
+                                <span className="status-badge status-closed text-sm text-center">
+                                    registration stopped by the admin contact admin for information
+                                </span>
+                            </motion.div>
                         ) : isRegistrationOpen ? (
                             <motion.div
                                 initial={{ scale: 0.8 }}
@@ -93,25 +99,25 @@ const Landing = () => {
                                 animate={{ scale: 1 }}
                             >
                                 <p className="text-sm text-light-subtext mb-3 font-semibold">{stats.totalTeams} out of {stats.limit} teams registered</p>
-                                <span className="status-badge status-closed">
-                                    Registration Closed - Limit Reached
+                                <span className="status-badge status-closed text-sm text-center">
+                                    registrations closed due to completing of slots
                                 </span>
                             </motion.div>
                         )}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                        {isRegistrationOpen ? (
+                        {(!isRegistrationOpen || stats.isStopped) ? (
+                            <button disabled className="px-8 py-4 rounded-xl bg-gray-200 text-gray-400 font-bold cursor-not-allowed">
+                                Registration Closed
+                            </button>
+                        ) : (
                             <button
                                 onClick={() => navigate('/register')}
                                 className="btn-primary flex items-center gap-2 group shadow-lg shadow-primary/25"
                             >
                                 Register Now
                                 <span className="group-hover:translate-x-1 transition-transform">→</span>
-                            </button>
-                        ) : (
-                            <button disabled className="px-8 py-4 rounded-xl bg-gray-200 text-gray-400 font-bold cursor-not-allowed">
-                                Registration Closed
                             </button>
                         )}
 
