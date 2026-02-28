@@ -283,14 +283,23 @@ const Dashboard = () => {
                 : `createx_payment_proofs_${new Date().toISOString().split('T')[0]}.csv`;
 
             const response = await api.get(endpoint, { responseType: 'blob' });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Create a blob ensuring it's treated as a CSV file by the browser
+            const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+
+            // Create temporary hidden link to force the browser download
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
-            link.remove();
-            toast.success('Export successful!');
+
+            // Cleanup attached link and blob URL
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Export downloaded successfully!');
         } catch (err) {
             toast.error('Export failed');
         }
