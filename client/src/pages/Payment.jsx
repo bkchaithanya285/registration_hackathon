@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
+import imageCompression from 'browser-image-compression';
 
 const Payment = () => {
     const { state } = useLocation();
@@ -47,14 +48,24 @@ const Payment = () => {
         }
 
         setLoading(true);
-        const formData = new FormData();
-
-        // Append JSON data
-        formData.append('teamId', state.teamId);
-        formData.append('utr', utr);
-        formData.append('screenshot', file);
 
         try {
+            // Compress the image before uploading to make it feel absolutely instant
+            const options = {
+                maxSizeMB: 0.5,
+                maxWidthOrHeight: 1024,
+                useWebWorker: true,
+            };
+
+            const compressedFile = await imageCompression(file, options);
+
+            const formData = new FormData();
+
+            // Append JSON data
+            formData.append('teamId', state.teamId);
+            formData.append('utr', utr);
+            formData.append('screenshot', compressedFile, compressedFile.name);
+
             const res = await api.post('/teams/register', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
