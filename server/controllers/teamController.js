@@ -132,70 +132,66 @@ exports.registerTeam = async (req, res) => {
         // Generate the real sequential ID only now (post-payment config)
         const realTeamId = await generateTeamId();
 
-        // Update the drafted team with final data and the real ID
         team.teamId = realTeamId;
         team.payment.utr = utr;
-        team.payment.screenshotUrl = 'UPLOADING';
         team.payment.status = 'Pending';
         const teamName = team.teamName;
 
-        await team.save();
-
-        // 1. Send Immediate Response to Client instantly so they don't wait for Cloudinary
-        res.status(201).json({ message: 'Registration successful', teamId: realTeamId });
-
-        // === START BACKGROUND TASKS ===
-
-        // 2. Background: Upload Screenshot Buffer to Cloudinary
+        // === UPLOAD SCREENSHOT FIRST ===
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
-                const timestamp = Date.now();
                 const newPublicId = `${realTeamId}-${teamName}`;
-
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'createx_hackathon/screenshots',
                         public_id: newPublicId,
                         resource_type: 'auto'
                     },
-                    async (error, result) => {
+                    (error, result) => {
                         if (error) {
-                            console.error(`Background upload failed for ${realTeamId}:`, error);
+                            console.error(`Upload failed for ${realTeamId}:`, error);
                             return reject(error);
                         }
-
                         if (result && result.secure_url) {
-                            await Team.updateOne({ teamId: realTeamId }, { 'payment.screenshotUrl': result.secure_url });
-                            console.log(`Background upload successful for ${realTeamId}, updated URL.`);
-                            resolve(result);
+                            resolve(result.secure_url);
+                        } else {
+                            reject(new Error("No URL returned from Cloudinary"));
                         }
                     }
                 );
-
-                // Write the buffer to the stream
                 const streamifier = require('streamifier');
                 streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
             });
         };
 
-        // Fire and forget upload
-        uploadScreenshotToCloudinary().catch(err => console.error('Cloudinary stream err', err));
+        try {
+            const secureUrl = await uploadScreenshotToCloudinary();
+            team.payment.screenshotUrl = secureUrl;
+            console.log(`Upload successful for ${realTeamId}, updated URL.`);
+        } catch (err) {
+            console.error('Cloudinary upload error:', err);
+            team.payment.screenshotUrl = 'UPLOAD_FAILED';
+        }
 
+        await team.save();
 
-        // 3. Background: Send Registration Email
+        // 3. Send Registration Email
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
         const membersData = team.members;
 
         if (leadEmail) {
-            // Send email asynchronously
-            sendRegistrationEmail(realTeamId, teamName, leadEmail, leadName, membersData)
-                .then(result => {
-                    if (result.success) console.log(`Background email sent to ${leadEmail}`);
-                    else console.error(`Background email failed for ${leadEmail}:`, result.error);
-                })
-                .catch(err => console.error('Background email critical error:', err));
+            try {
+                const result = await sendRegistrationEmail(realTeamId, teamName, leadEmail, leadName, membersData);
+                if (result.success) console.log(`Email sent to ${leadEmail}`);
+                else console.error(`Email failed for ${leadEmail}:`, result.error);
+            } catch (err) {
+                console.error('Email critical error:', err);
+            }
         }
+
+        // Send Response After all work is complete
+        res.status(201).json({ message: 'Registration successful', teamId: realTeamId });
     } catch (err) {
         console.error('REGISTRATION ERROR:', err.message);
         if (err.errors) console.error('VALIDATION DETAILS:', JSON.stringify(err.errors, null, 2));
@@ -234,7 +230,42 @@ exports.adminCreateTeam = async (req, res) => {
 
         const teamId = await generateTeamId();
 
-        // 1. Save team with Temporary Screenshot URL
+        // === UPLOAD SCREENSHOT FIRST ===
+        const uploadScreenshotToCloudinary = () => {
+            return new Promise((resolve, reject) => {
+                const newPublicId = `${teamId}-${teamName}`;
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'createx_hackathon/screenshots',
+                        public_id: newPublicId,
+                        resource_type: 'auto'
+                    },
+                    (error, result) => {
+                        if (error) {
+                            console.error(`Upload failed for Admin team ${teamId}:`, error);
+                            return reject(error);
+                        }
+                        if (result && result.secure_url) {
+                            resolve(result.secure_url);
+                        } else {
+                            reject(new Error("No URL returned from Cloudinary"));
+                        }
+                    }
+                );
+                const streamifier = require('streamifier');
+                streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+            });
+        };
+
+        let secureUrl = 'UPLOAD_FAILED';
+        try {
+            secureUrl = await uploadScreenshotToCloudinary();
+            console.log(`Upload successful for Admin team ${teamId}, updated URL.`);
+        } catch (err) {
+            console.error('Cloudinary stream err', err);
+        }
+
+        // 1. Save team with actual Screenshot URL
         const newTeam = new Team({
             teamId,
             teamName,
@@ -242,7 +273,7 @@ exports.adminCreateTeam = async (req, res) => {
             members: membersData || [],
             payment: {
                 utr,
-                screenshotUrl: 'UPLOADING',
+                screenshotUrl: secureUrl,
                 status: 'Verified' // Admin added usually means verified
             },
             isAdminOverride: true
@@ -250,42 +281,8 @@ exports.adminCreateTeam = async (req, res) => {
 
         await newTeam.save();
 
-        // 2. Respond immediately
+        // 2. Respond
         res.status(201).json({ message: 'Team added by Admin', teamId });
-
-        // === START BACKGROUND TASKS ===
-        const uploadScreenshotToCloudinary = () => {
-            return new Promise((resolve, reject) => {
-                const timestamp = Date.now();
-                const newPublicId = `${teamId}-${teamName}`;
-
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: 'createx_hackathon/screenshots',
-                        public_id: newPublicId,
-                        resource_type: 'auto'
-                    },
-                    async (error, result) => {
-                        if (error) {
-                            console.error(`Background upload failed for Admin team ${teamId}:`, error);
-                            return reject(error);
-                        }
-
-                        if (result && result.secure_url) {
-                            await Team.updateOne({ teamId }, { 'payment.screenshotUrl': result.secure_url });
-                            console.log(`Background upload successful for Admin team ${teamId}, updated URL.`);
-                            resolve(result);
-                        }
-                    }
-                );
-
-                const streamifier = require('streamifier');
-                streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
-            });
-        };
-
-        // Fire and forget upload
-        uploadScreenshotToCloudinary().catch(err => console.error('Cloudinary stream err', err));
 
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
@@ -346,39 +343,31 @@ exports.updatePaymentStatus = async (req, res) => {
             team.payment.rejectionReason = "";
         }
 
-        // Save status first to ensure DB is updated immediately
-        await team.save();
-
-        // Send Immediate Response to UI so it doesn't freeze
-        res.json({ message: 'Payment status updated', team });
-
-        // === BACKGROUND TASK: SEND EMAIL ===
+        // === SEND EMAIL BEFORE RESPONDING ===
         const leadEmail = team.leader.email;
         const leadName = team.leader.name;
+        let emailSentSuccess = false;
 
         if (leadEmail) {
-            console.log(`📨 [BACKGROUND] Sending payment verification email to ${leadEmail}...`);
-            // Fire and forget - don't await
-            sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status)
-                .then(async (emailSent) => {
-                    // Check logic based on new return object from Mailjet (it returns { success: true/false })
-                    if (emailSent && emailSent.success) {
-                        await Team.updateOne({ teamId }, {
-                            'payment.emailSent': true,
-                            'payment.emailSentAt': new Date()
-                        });
-                        console.log(`✅ [BACKGROUND] Email marked as sent in DB`);
-                    } else {
-                        console.error(`❌ [BACKGROUND] Email send failed`);
-                    }
-                })
-                .catch(err => {
-                    console.error(`\n� [BACKGROUND] EMAIL EXCEPTION:`, err);
-                });
+            console.log(`📨 Sending payment verification email to ${leadEmail}...`);
+            try {
+                const emailResult = await sendPaymentVerificationEmail(teamId, team.teamName, leadEmail, leadName, status);
+                if (emailResult && emailResult.success) {
+                    team.payment.emailSent = true;
+                    team.payment.emailSentAt = new Date();
+                    emailSentSuccess = true;
+                    console.log(`✅ Email marked as sent in DB`);
+                } else {
+                    console.error(`❌ Email send failed`);
+                }
+            } catch (err) {
+                console.error(`\n EMAIL EXCEPTION:`, err);
+            }
         }
 
+        // Save status and email status
+        await team.save();
         console.log(`✓ Team saved successfully`);
-        console.log(`After save - emailSent: ${team.payment.emailSent}, emailSentAt: ${team.payment.emailSentAt}`);
 
         const response = {
             message: `Team ${status}${emailSentSuccess ? ' (Email sent)' : ' (Email failed)'}`,
