@@ -709,5 +709,57 @@ exports.updatePaymentSettings = async (req, res) => {
 };
 
 
+// Edit Team ID (Admin Only)
+exports.updateTeamId = async (req, res) => {
+    try {
+        const { oldTeamId, newTeamId } = req.body;
 
+        if (!oldTeamId || !newTeamId) {
+            return res.status(400).json({ message: 'Both old and new Team IDs are required' });
+        }
 
+        // 1. Verify new ID format is correct (optional but safe)
+        if (!/^CREATOR-\d+$/.test(newTeamId)) {
+            return res.status(400).json({ message: 'New Team ID must format as CREATOR-XXX' });
+        }
+
+        // 2. Check if new ID already exists
+        const existingTeam = await Team.findOne({ teamId: newTeamId });
+        if (existingTeam) {
+            return res.status(400).json({ message: `Team ID ${newTeamId} is already taken by another team.` });
+        }
+
+        // 3. Update the team
+        const team = await Team.findOneAndUpdate(
+            { teamId: oldTeamId },
+            { teamId: newTeamId },
+            { new: true }
+        );
+
+        if (!team) {
+            return res.status(404).json({ message: 'Original Team not found' });
+        }
+
+        // 4. Counter Continuity: Find the highest CREATOR-XXX number in the DB
+        const highestTeam = await Team.findOne({ teamId: /^CREATOR-\d+$/ }).sort({ teamId: -1 });
+        if (highestTeam && highestTeam.teamId) {
+            const parts = highestTeam.teamId.split('-');
+            if (parts.length === 2 && !isNaN(parts[1])) {
+                const highestNum = parseInt(parts[1], 10);
+
+                // 5. Update the Counter to match the highest existing number
+                await Counter.findOneAndUpdate(
+                    { _id: 'teamId' },
+                    { seq: highestNum },
+                    { upsert: true } // Create if doesn't exist
+                );
+                console.log(`Global counter synced to highest existing number: ${highestNum}`);
+            }
+        }
+
+        res.json({ message: 'Team ID updated successfully', team });
+    } catch (err) {
+        console.error('Error updating team ID:', err);
+        res.status(500).json({ message: 'Server error updating team ID' });
+    }
+};

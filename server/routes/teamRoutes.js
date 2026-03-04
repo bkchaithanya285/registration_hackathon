@@ -55,6 +55,9 @@ router.delete('/admin/clear-all', authMiddleware, teamController.deleteAllTeams)
 router.get('/admin/export/all-details', authMiddleware, teamController.exportAllDetails);
 router.get('/admin/export/screenshot-details', authMiddleware, teamController.exportScreenshotDetails);
 
+// Edit Team ID Route
+router.put('/admin/team/id', authMiddleware, teamController.updateTeamId);
+
 // Payment Settings Routes
 router.get('/admin/settings/payment', authMiddleware, teamController.getPaymentSettings);
 router.put('/admin/settings/payment', authMiddleware, handleUploadError(uploadQRCode.single('qrCode')), teamController.updatePaymentSettings);

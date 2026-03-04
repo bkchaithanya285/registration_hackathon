@@ -24,6 +24,10 @@ const Dashboard = () => {
 
     const [expandedScreenshot, setExpandedScreenshot] = useState(false);
 
+    // Editing Team ID Tracking
+    const [isEditingTeamId, setIsEditingTeamId] = useState(false);
+    const [editTeamIdValue, setEditTeamIdValue] = useState('');
+
     // New Features
     const [statusFilter, setStatusFilter] = useState('All'); // All, Verified, Pending, Rejected
 
@@ -131,6 +135,23 @@ const Dashboard = () => {
             toast.success('Limit updated successfully');
         } catch (err) {
             toast.error('Failed to update limit');
+        }
+    };
+
+    const handleUpdateTeamId = async () => {
+        if (!selectedTeam) return;
+        try {
+            const res = await api.put('/teams/admin/team/id', {
+                oldTeamId: selectedTeam.teamId,
+                newTeamId: editTeamIdValue
+            });
+            toast.success('Team ID successfully updated!');
+            setIsEditingTeamId(false);
+            // Refresh local selected team pointer and the team table instantly
+            setSelectedTeam(res.data.team);
+            fetchTeams();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update Team ID');
         }
     };
 
@@ -430,10 +451,38 @@ const Dashboard = () => {
                             <div className="bg-slate-50 border-b border-slate-100 p-6 flex justify-between items-center sticky top-0 z-10">
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-800">Team Details</h2>
-                                    <p className="text-slate-500 text-sm">{selectedTeam.teamId}</p>
+                                    {isEditingTeamId ? (
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <input
+                                                value={editTeamIdValue}
+                                                onChange={(e) => setEditTeamIdValue(e.target.value)}
+                                                className="border-2 border-primary/40 rounded px-2 py-1 text-sm font-mono focus:outline-none focus:border-primary w-40"
+                                                autoFocus
+                                            />
+                                            <button onClick={handleUpdateTeamId} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-bold transition">Save</button>
+                                            <button onClick={() => setIsEditingTeamId(false)} className="bg-slate-200 hover:bg-slate-300 text-slate-600 px-2 py-1 rounded text-xs font-bold transition">Cancel</button>
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-500 text-sm font-mono mt-1 flex items-center gap-2 group">
+                                            {selectedTeam.teamId}
+                                            <button
+                                                onClick={() => {
+                                                    setEditTeamIdValue(selectedTeam.teamId);
+                                                    setIsEditingTeamId(true);
+                                                }}
+                                                className="text-primary opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-primary/10 rounded"
+                                                title="Edit Team Code"
+                                            >
+                                                ✏️
+                                            </button>
+                                        </p>
+                                    )}
                                 </div>
                                 <button
-                                    onClick={() => setSelectedTeam(null)}
+                                    onClick={() => {
+                                        setSelectedTeam(null);
+                                        setIsEditingTeamId(false);
+                                    }}
                                     className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 transition"
                                 >
                                     ✕
