@@ -165,10 +165,10 @@ exports.registerTeam = async (req, res) => {
             uploadAttempts++;
             try {
                 secureUrl = await uploadScreenshotToCloudinary();
-                console.log(`Upload attempt ${uploadAttempts} successful for ${realTeamId}.`);
+                console.log(`Upload attempt ${uploadAttempts} successful for ${teamId}.`);
                 break; // Success, exit loop
             } catch (err) {
-                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for ${realTeamId}:`, err);
+                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for ${teamId}:`, err);
                 if (uploadAttempts >= maxAttempts) {
                     throw new Error('Screenshot upload failed after multiple attempts due to network issues. Please check your connection and submit again.');
                 }
