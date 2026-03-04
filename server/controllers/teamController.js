@@ -129,18 +129,11 @@ exports.registerTeam = async (req, res) => {
             return res.status(400).json({ message: 'UTR already exists. Please enter a different UTR number.' });
         }
 
-        // Generate the real sequential ID only now (post-payment config)
-        const realTeamId = await generateTeamId();
-
-        team.teamId = realTeamId;
-        team.payment.utr = utr;
-        team.payment.status = 'Pending';
-        const teamName = team.teamName;
-
         // === UPLOAD SCREENSHOT FIRST ===
+        // Use the draft teamId for the Cloudinary public_id so we don't 'burn' a final ID on a failed upload
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
-                const newPublicId = `${realTeamId}-${teamName}`;
+                const newPublicId = `${teamId}-${teamName}`;
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'createx_hackathon/screenshots',
@@ -184,6 +177,12 @@ exports.registerTeam = async (req, res) => {
             }
         }
 
+        // Generate the real sequential ID only now (post-upload success)
+        const realTeamId = await generateTeamId();
+
+        team.teamId = realTeamId;
+        team.payment.utr = utr;
+        team.payment.status = 'Pending';
         team.payment.screenshotUrl = secureUrl;
 
         await team.save();
@@ -241,12 +240,12 @@ exports.adminCreateTeam = async (req, res) => {
         const leaderData = typeof leader === 'string' ? JSON.parse(leader) : leader;
         const membersData = typeof members === 'string' ? JSON.parse(members) : members;
 
-        const teamId = await generateTeamId();
+        const tempIdForCloudinary = `admin_${Date.now()}`;
 
         // === UPLOAD SCREENSHOT FIRST ===
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
-                const newPublicId = `${teamId}-${teamName}`;
+                const newPublicId = `${tempIdForCloudinary}-${teamName}`;
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'createx_hackathon/screenshots',
@@ -289,6 +288,8 @@ exports.adminCreateTeam = async (req, res) => {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
+
+        const teamId = await generateTeamId();
 
         // 1. Save team with actual Screenshot URL
         const newTeam = new Team({
