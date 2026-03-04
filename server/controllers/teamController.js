@@ -144,7 +144,7 @@ exports.registerTeam = async (req, res) => {
                     },
                     (error, result) => {
                         if (error) {
-                            console.error(`Upload failed for ${realTeamId}:`, error);
+                            console.error(`Upload failed for ${teamId}:`, error);
                             return reject(error);
                         }
                         if (result && result.secure_url) {
