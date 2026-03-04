@@ -125,7 +125,7 @@ const Landing = () => {
                             onClick={() => navigate('/status')}
                             className="btn-secondary flex items-center gap-2 group shadow-lg shadow-secondary/25"
                         >
-                            Check Payment Status
+                            Check Registration Status
                             <span className="group-hover:translate-x-1 transition-transform">→</span>
                         </button>
                     </div>

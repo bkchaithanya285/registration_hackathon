@@ -93,12 +93,18 @@ const Payment = () => {
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="card-secondary p-4 mb-6"
+                    className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg shadow-sm"
                 >
-                    <div className="flex justify-between items-center mb-2">
-                        <p className="text-secondary text-xs font-bold uppercase tracking-widest">⚠️ Important</p>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-red-600 text-lg">🚨</span>
+                        <p className="text-red-700 text-sm font-bold uppercase tracking-widest">Strict Notice</p>
                     </div>
-                    <p className="text-secondary/80 text-sm">No changes allowed after payment. Your slot is temporarily reserved. Please complete your payment.</p>
+                    <p className="text-red-700 text-sm font-semibold mb-2">
+                        Pay the EXACT amount of <span className="text-lg font-bold">₹1750</span>. Do not double pay!
+                    </p>
+                    <p className="text-red-600 text-xs font-medium leading-relaxed">
+                        Wrong payments or fake payments will face severe action, and this can lead to EMRGC escalation and immediate suspension.
+                    </p>
                 </motion.div>
 
                 <motion.div
@@ -133,21 +139,12 @@ const Payment = () => {
                         {paymentSettings.upiId || 'example@upi'}
                     </p>
 
-                    {paymentSettings.upiId && (
-                        <div className="mb-4">
-                            <a
-                                href={`upi://pay?pa=${paymentSettings.upiId}&pn=CreateX&cu=INR`}
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition-transform shadow-md"
-                            >
-                                <span>📱 Pay with UPI App</span>
-                            </a>
-                        </div>
-                    )}
+                    {/* UPI button removed as per request */}
 
                     <div className="border-t border-primary/20 pt-4">
                         <p className="text-gray-400 text-xs uppercase tracking-widest">Total Amount</p>
-                        <p className="text-4xl font-bold text-primary">₹1750</p>
-                        <p className="text-xs text-primary/60 mt-1">5 Participants × ₹350</p>
+                        <p className="text-6xl font-extrabold text-primary mb-2">₹1750</p>
+                        <p className="text-sm font-semibold text-primary/80 mt-1">5 Participants × ₹350</p>
                     </div>
                 </motion.div>
 

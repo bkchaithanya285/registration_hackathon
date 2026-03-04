@@ -90,14 +90,22 @@ const CheckStatus = () => {
                         animate={{ scale: 1, opacity: 1 }}
                         className="mt-6 space-y-4"
                     >
-                        <div className="card-primary p-6 text-center">
-                            <p className="text-primary text-xs uppercase tracking-widest font-bold mb-2">Status</p>
-                            <p className={`text-3xl font-bold uppercase tracking-wider ${result.status === 'Verified' ? 'text-secondary' :
-                                result.status === 'Rejected' ? 'text-red-600' :
-                                    'text-accent'
-                                }`}>
-                                {result.status}
-                            </p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="card-primary p-6 text-center">
+                                <p className="text-primary text-xs uppercase tracking-widest font-bold mb-2">Registration</p>
+                                <p className="text-2xl font-bold uppercase tracking-wider text-secondary">
+                                    COMPLETED
+                                </p>
+                            </div>
+                            <div className="card-secondary p-6 text-center shadow-inner">
+                                <p className="text-secondary text-xs uppercase tracking-widest font-bold mb-2">Payment</p>
+                                <p className={`text-2xl font-bold uppercase tracking-wider ${['Verified', 'Completed'].includes(result.status) ? 'text-green-600' :
+                                    result.status === 'Rejected' ? 'text-red-600' :
+                                        'text-accent'
+                                    }`}>
+                                    {result.status === 'Verified' ? 'Completed' : result.status}
+                                </p>
+                            </div>
                         </div>
 
                         {result.reason && (
@@ -107,14 +115,14 @@ const CheckStatus = () => {
                             </div>
                         )}
 
-                        {result.status === 'Verified' && (
+                        {['Verified', 'Completed'].includes(result.status) && (
                             <div className="bg-secondary/10 border border-secondary/30 p-4 rounded-lg text-center mb-4">
-                                <p className="text-secondary font-semibold">Your payment is verified!</p>
+                                <p className="text-secondary font-semibold">Your Registration is Completed!</p>
                                 <p className="text-secondary/60 text-xs mt-1">You will receive a confirmation email shortly.</p>
                             </div>
                         )}
 
-                        {result.status === 'Verified' && (
+                        {['Verified', 'Completed'].includes(result.status) && (
                             <div className="bg-green-50 border-2 border-green-300 p-6 rounded-lg">
                                 <p className="text-green-700 text-xs uppercase tracking-widest font-bold mb-4 text-center">Join Our WhatsApp Group</p>
 
