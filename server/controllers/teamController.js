@@ -254,7 +254,7 @@ exports.adminCreateTeam = async (req, res) => {
                     },
                     (error, result) => {
                         if (error) {
-                            console.error(`Upload failed for Admin team ${teamId}:`, error);
+                            console.error(`Upload failed for Admin team ${tempIdForCloudinary}:`, error);
                             return reject(error);
                         }
                         if (result && result.secure_url) {
@@ -277,10 +277,10 @@ exports.adminCreateTeam = async (req, res) => {
             uploadAttempts++;
             try {
                 secureUrl = await uploadScreenshotToCloudinary();
-                console.log(`Upload attempt ${uploadAttempts} successful for Admin team ${teamId}.`);
+                console.log(`Upload attempt ${uploadAttempts} successful for Admin team ${tempIdForCloudinary}.`);
                 break;
             } catch (err) {
-                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for Admin team ${teamId}:`, err);
+                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for Admin team ${tempIdForCloudinary}:`, err);
                 if (uploadAttempts >= maxAttempts) {
                     return res.status(500).json({ message: 'Screenshot upload failed. Please try again.' });
                 }
