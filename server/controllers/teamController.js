@@ -164,14 +164,27 @@ exports.registerTeam = async (req, res) => {
             });
         };
 
-        try {
-            const secureUrl = await uploadScreenshotToCloudinary();
-            team.payment.screenshotUrl = secureUrl;
-            console.log(`Upload successful for ${realTeamId}, updated URL.`);
-        } catch (err) {
-            console.error('Cloudinary upload error:', err);
-            team.payment.screenshotUrl = 'UPLOAD_FAILED';
+        let secureUrl = null;
+        let uploadAttempts = 0;
+        const maxAttempts = 3;
+
+        while (uploadAttempts < maxAttempts) {
+            uploadAttempts++;
+            try {
+                secureUrl = await uploadScreenshotToCloudinary();
+                console.log(`Upload attempt ${uploadAttempts} successful for ${realTeamId}.`);
+                break; // Success, exit loop
+            } catch (err) {
+                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for ${realTeamId}:`, err);
+                if (uploadAttempts >= maxAttempts) {
+                    throw new Error('Screenshot upload failed after multiple attempts due to network issues. Please check your connection and submit again.');
+                }
+                // Wait 1 second before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
         }
+
+        team.payment.screenshotUrl = secureUrl;
 
         await team.save();
 
@@ -257,12 +270,24 @@ exports.adminCreateTeam = async (req, res) => {
             });
         };
 
-        let secureUrl = 'UPLOAD_FAILED';
-        try {
-            secureUrl = await uploadScreenshotToCloudinary();
-            console.log(`Upload successful for Admin team ${teamId}, updated URL.`);
-        } catch (err) {
-            console.error('Cloudinary stream err', err);
+        let secureUrl = null;
+        let uploadAttempts = 0;
+        const maxAttempts = 3;
+
+        while (uploadAttempts < maxAttempts) {
+            uploadAttempts++;
+            try {
+                secureUrl = await uploadScreenshotToCloudinary();
+                console.log(`Upload attempt ${uploadAttempts} successful for Admin team ${teamId}.`);
+                break;
+            } catch (err) {
+                console.error(`Cloudinary upload attempt ${uploadAttempts} failed for Admin team ${teamId}:`, err);
+                if (uploadAttempts >= maxAttempts) {
+                    return res.status(500).json({ message: 'Screenshot upload failed. Please try again.' });
+                }
+                // Wait 1 second before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
         }
 
         // 1. Save team with actual Screenshot URL
