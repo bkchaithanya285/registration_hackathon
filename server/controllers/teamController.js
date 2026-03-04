@@ -123,6 +123,8 @@ exports.registerTeam = async (req, res) => {
             return res.status(400).json({ message: 'Registration session expired or invalid. Please try again.' });
         }
 
+        const teamName = team.teamName;
+
         const existingUTR = await Team.findOne({ 'payment.utr': utr, teamId: { $ne: teamId } });
 
         if (existingUTR) {
