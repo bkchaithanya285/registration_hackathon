@@ -18,7 +18,7 @@ exports.getStats = async (req, res) => {
         const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
         await Team.deleteMany({ 'payment.status': 'Draft', createdAt: { $lt: tenMinsAgo } });
 
-        const totalTeams = await Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Draft'] } }); // Count actual intended teams
+        const totalTeams = await Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Completed'] } }); // Count actual intended teams
         const limit = await getLimit();
         const stoppedSetting = await Setting.findOne({ key: 'registrationStopped' });
 
@@ -59,7 +59,7 @@ exports.createDraft = async (req, res) => {
         const { teamName, leader, members } = req.body;
 
         const [count, limit, stoppedSetting, existingTeam] = await Promise.all([
-            Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Draft'] } }),
+            Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Completed'] } }),
             getLimit(),
             Setting.findOne({ key: 'registrationStopped' }),
             Team.findOne({ teamName: { $regex: `^${teamName}$`, $options: 'i' } })
