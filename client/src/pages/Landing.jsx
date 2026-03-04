@@ -60,6 +60,10 @@ const Landing = () => {
                             <h3 className="text-xs font-extrabold text-secondary uppercase tracking-widest mb-2">Registration Fee</h3>
                             <p className="text-4xl font-extrabold text-slate-800">₹350 <span className="text-sm text-slate-500 font-bold">/ head</span></p>
                         </div>
+                        <div className="text-center px-8 py-6 bg-white rounded-2xl shadow-lg border-t-4 border-accent transform hover:-translate-y-1 transition-transform duration-300">
+                            <h3 className="text-xs font-extrabold text-accent uppercase tracking-widest mb-2">Benefits</h3>
+                            <p className="text-4xl font-extrabold text-slate-800">2 EE <span className="text-sm text-slate-500 font-bold">Credits</span></p>
+                        </div>
                     </div>
 
                     <div className="mb-10">
