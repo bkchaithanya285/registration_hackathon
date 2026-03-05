@@ -135,7 +135,8 @@ exports.registerTeam = async (req, res) => {
         // Use the draft teamId for the Cloudinary public_id so we don't 'burn' a final ID on a failed upload
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
-                const newPublicId = `${teamId}-${teamName}`;
+                const safeTeamName = teamName ? teamName.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'unknown';
+                const newPublicId = `${teamId}-${safeTeamName}`;
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'createx_hackathon/screenshots',
@@ -247,7 +248,8 @@ exports.adminCreateTeam = async (req, res) => {
         // === UPLOAD SCREENSHOT FIRST ===
         const uploadScreenshotToCloudinary = () => {
             return new Promise((resolve, reject) => {
-                const newPublicId = `${tempIdForCloudinary}-${teamName}`;
+                const safeTeamName = teamName ? teamName.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'unknown';
+                const newPublicId = `${tempIdForCloudinary}-${safeTeamName}`;
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'createx_hackathon/screenshots',
