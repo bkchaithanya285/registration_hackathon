@@ -14,6 +14,9 @@ const getLimit = async () => {
 // Get Public Status
 exports.getStats = async (req, res) => {
     try {
+        const { token } = req.query;
+        const isBypass = process.env.BYPASS_TOKEN && token === process.env.BYPASS_TOKEN;
+
         // Clean up expired drafts before calculating stats
         const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
         await Team.deleteMany({ 'payment.status': 'Draft', createdAt: { $lt: tenMinsAgo } });
@@ -29,9 +32,9 @@ exports.getStats = async (req, res) => {
         res.json({
             totalTeams,
             limit,
-            isRegistrationOpen,
-            isStopped,
-            limitReached
+            isRegistrationOpen: isBypass ? true : isRegistrationOpen,
+            isStopped: isBypass ? false : isStopped,
+            limitReached: isBypass ? false : limitReached
         });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
@@ -56,7 +59,8 @@ exports.checkTeamName = async (req, res) => {
 
 exports.createDraft = async (req, res) => {
     try {
-        const { teamName, leader, members } = req.body;
+        const { teamName, leader, members, bypassToken } = req.body;
+        const isBypass = process.env.BYPASS_TOKEN && bypassToken === process.env.BYPASS_TOKEN;
 
         const [count, limit, stoppedSetting, existingTeam] = await Promise.all([
             Team.countDocuments({ 'payment.status': { $in: ['Pending', 'Verified', 'Completed'] } }),
@@ -67,11 +71,11 @@ exports.createDraft = async (req, res) => {
 
         const isStopped = stoppedSetting && stoppedSetting.value === 'true';
 
-        if (isStopped) {
+        if (!isBypass && isStopped) {
             return res.status(400).json({ message: 'Registration stopped by the admin contact admin for information' });
         }
 
-        if (count >= limit) {
+        if (!isBypass && count >= limit) {
             return res.status(400).json({ message: 'Registrations closed due to completing of slots' });
         }
 

@@ -7,6 +7,7 @@ const Review = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
     const data = state?.registrationData;
+    const bypassToken = state?.bypassToken;
 
     if (!data) {
         return (
@@ -22,7 +23,8 @@ const Review = () => {
 
     const handleConfirm = async () => {
         try {
-            const res = await api.post('/teams/reserve', data);
+            const payload = bypassToken ? { ...data, bypassToken } : data;
+            const res = await api.post('/teams/reserve', payload);
 
             navigate('/payment', { state: { registrationData: data, teamId: res.data.teamId } });
         } catch (err) {
@@ -32,7 +34,7 @@ const Review = () => {
     };
 
     const handleEdit = () => {
-        navigate('/register', { state: { registrationData: data, isEditing: true } });
+        navigate('/register', { state: { registrationData: data, isEditing: true, bypassToken } });
     };
 
     return (

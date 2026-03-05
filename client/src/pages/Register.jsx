@@ -8,8 +8,13 @@ import { yearOptions } from '../utils/romanNumerals';
 
 const Register = () => {
     const navigate = useNavigate();
-    const { state } = useLocation();
+    const location = useLocation();
+    const { state } = location;
     const isEditing = state?.isEditing || false;
+
+    // Secret Token extraction
+    const searchParams = new URLSearchParams(location.search);
+    const bypassToken = searchParams.get('token') || state?.bypassToken || '';
 
     const savedDraft = JSON.parse(localStorage.getItem('hack_registration_draft')) || {};
 
@@ -44,7 +49,9 @@ const Register = () => {
             setLoading(false);
         }, 5000); // Fallback timeout after 5 seconds
 
-        api.get('/teams/stats')
+        const statsUrl = bypassToken ? `/teams/stats?token=${bypassToken}` : '/teams/stats';
+
+        api.get(statsUrl)
             .then(res => {
                 console.log('Stats fetched:', res.data);
                 clearTimeout(timeout);
@@ -92,8 +99,8 @@ const Register = () => {
 
     const onSubmit = async (data) => {
         // All 4 members are mandatory and always present
-        // Pass data to Review page
-        navigate('/review', { state: { registrationData: data } });
+        // Pass data and token to Review page
+        navigate('/review', { state: { registrationData: data, bypassToken } });
     };
 
     return (
