@@ -25,9 +25,9 @@ exports.getStats = async (req, res) => {
         const limit = await getLimit();
         const stoppedSetting = await Setting.findOne({ key: 'registrationStopped' });
 
-        const isStopped = stoppedSetting && stoppedSetting.value === 'true' ? true : false;
-        const limitReached = totalTeams >= limit;
-        const isRegistrationOpen = !limitReached && !isStopped;
+        const isStopped = true; // Hardcoded to closed as requested
+        const limitReached = true; // Hardcoded to closed as requested
+        const isRegistrationOpen = false; // Hardcoded to closed as requested
 
         res.json({
             totalTeams,

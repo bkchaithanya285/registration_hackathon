@@ -5,7 +5,7 @@ import api from '../api';
 
 const Landing = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState({ totalTeams: 0, isRegistrationOpen: true });
+    const [stats, setStats] = useState({ totalTeams: 0, isRegistrationOpen: false });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -20,7 +20,8 @@ const Landing = () => {
             });
     }, []);
 
-    const isRegistrationOpen = stats.isRegistrationOpen;
+    const isRegistrationOpen = false;
+    const isStopped = true;
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-light-bg">
@@ -70,13 +71,13 @@ const Landing = () => {
                         <h2 className="text-2xl font-bold mb-4 text-primary">Registration Status</h2>
                         {loading ? (
                             <p className="text-gray-400 animate-pulse">Checking status...</p>
-                        ) : stats.isStopped ? (
+                        ) : true ? (
                             <motion.div
                                 initial={{ scale: 0.8 }}
                                 animate={{ scale: 1 }}
                             >
                                 <span className="status-badge status-closed text-sm text-center">
-                                    registration stopped by the admin contact admin for information
+                                    registrations closed
                                 </span>
                             </motion.div>
                         ) : isRegistrationOpen ? (
@@ -102,36 +103,15 @@ const Landing = () => {
                                 initial={{ scale: 0.8 }}
                                 animate={{ scale: 1 }}
                             >
-                                <p className="text-sm text-light-subtext mb-3 font-semibold">{stats.totalTeams} out of {stats.limit} teams registered</p>
                                 <span className="status-badge status-closed text-sm text-center">
-                                    registrations closed due to completing of slots
+                                    registrations closed
                                 </span>
                             </motion.div>
                         )}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                        {(!isRegistrationOpen || stats.isStopped) ? (
-                            <button disabled className="px-8 py-4 rounded-xl bg-gray-200 text-gray-400 font-bold cursor-not-allowed">
-                                Registration Closed
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => navigate('/register')}
-                                className="btn-primary flex items-center gap-2 group shadow-lg shadow-primary/25"
-                            >
-                                Register Now
-                                <span className="group-hover:translate-x-1 transition-transform">→</span>
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => navigate('/status')}
-                            className="btn-secondary flex items-center gap-2 group shadow-lg shadow-secondary/25"
-                        >
-                            Check Registration Status
-                            <span className="group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
+                        {/* Buttons hidden as registrations are closed */}
                     </div>
                 </motion.div>
             </div>

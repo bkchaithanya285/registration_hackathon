@@ -37,7 +37,7 @@ const Register = () => {
         name: "members"
     });
 
-    const [isClosed, setIsClosed] = useState(false);
+    const [isClosed, setIsClosed] = useState(true);
     const [loading, setLoading] = useState(true);
 
     // Watch lead hosteler status
@@ -86,9 +86,8 @@ const Register = () => {
                 <div className="glass-card p-10 text-center max-w-lg border border-red-500/30">
                     <h2 className="text-3xl font-bold text-red-500 mb-4">Registration Closed</h2>
                     <p className="text-light-subtext mb-6 font-medium">
-                        registrations closed due to completing of slots / stopped by admin.
+                        registrations closed.
                     </p>
-                    <button onClick={() => navigate('/')} className="btn-secondary">Back to Home</button>
                 </div >
             </div >
         );
